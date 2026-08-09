@@ -10,33 +10,123 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ObrasIdRouteImport } from './routes/obras.$id'
+import { Route as ObrasNovaRouteImport } from './routes/obras.nova'
+import { Route as ObrasIdIndexRouteImport } from './routes/obras.$id.index'
+import { Route as ObrasIdFinalizarRouteImport } from './routes/obras.$id.finalizar'
+import { Route as ObrasIdRegistrosRegistroIdRouteImport } from './routes/obras.$id.registros.$registroId'
+import { Route as ObrasIdRegistrosNovoRouteImport } from './routes/obras.$id.registros.novo'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ObrasIdRoute = ObrasIdRouteImport.update({
+  id: '/obras/$id',
+  path: '/obras/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ObrasNovaRoute = ObrasNovaRouteImport.update({
+  id: '/obras/nova',
+  path: '/obras/nova',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ObrasIdIndexRoute = ObrasIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ObrasIdRoute,
+} as any)
+const ObrasIdFinalizarRoute = ObrasIdFinalizarRouteImport.update({
+  id: '/finalizar',
+  path: '/finalizar',
+  getParentRoute: () => ObrasIdRoute,
+} as any)
+const ObrasIdRegistrosRegistroIdRoute =
+  ObrasIdRegistrosRegistroIdRouteImport.update({
+    id: '/registros/$registroId',
+    path: '/registros/$registroId',
+    getParentRoute: () => ObrasIdRoute,
+  } as any)
+const ObrasIdRegistrosNovoRoute = ObrasIdRegistrosNovoRouteImport.update({
+  id: '/registros/novo',
+  path: '/registros/novo',
+  getParentRoute: () => ObrasIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/obras/$id': typeof ObrasIdRouteWithChildren
+  '/obras/nova': typeof ObrasNovaRoute
+  '/obras/$id/finalizar': typeof ObrasIdFinalizarRoute
+  '/obras/$id/': typeof ObrasIdIndexRoute
+  '/obras/$id/registros/$registroId': typeof ObrasIdRegistrosRegistroIdRoute
+  '/obras/$id/registros/novo': typeof ObrasIdRegistrosNovoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/obras/nova': typeof ObrasNovaRoute
+  '/obras/$id/finalizar': typeof ObrasIdFinalizarRoute
+  '/obras/$id': typeof ObrasIdIndexRoute
+  '/obras/$id/registros/$registroId': typeof ObrasIdRegistrosRegistroIdRoute
+  '/obras/$id/registros/novo': typeof ObrasIdRegistrosNovoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/obras/$id': typeof ObrasIdRouteWithChildren
+  '/obras/nova': typeof ObrasNovaRoute
+  '/obras/$id/finalizar': typeof ObrasIdFinalizarRoute
+  '/obras/$id/': typeof ObrasIdIndexRoute
+  '/obras/$id/registros/$registroId': typeof ObrasIdRegistrosRegistroIdRoute
+  '/obras/$id/registros/novo': typeof ObrasIdRegistrosNovoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/obras/$id'
+    | '/obras/nova'
+    | '/obras/$id/finalizar'
+    | '/obras/$id/'
+    | '/obras/$id/registros/$registroId'
+    | '/obras/$id/registros/novo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/obras/nova'
+    | '/obras/$id/finalizar'
+    | '/obras/$id'
+    | '/obras/$id/registros/$registroId'
+    | '/obras/$id/registros/novo'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/obras/$id'
+    | '/obras/nova'
+    | '/obras/$id/finalizar'
+    | '/obras/$id/'
+    | '/obras/$id/registros/$registroId'
+    | '/obras/$id/registros/novo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRoute
+  ObrasIdRoute: typeof ObrasIdRouteWithChildren
+  ObrasNovaRoute: typeof ObrasNovaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +138,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/obras/$id': {
+      id: '/obras/$id'
+      path: '/obras/$id'
+      fullPath: '/obras/$id'
+      preLoaderRoute: typeof ObrasIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/obras/nova': {
+      id: '/obras/nova'
+      path: '/obras/nova'
+      fullPath: '/obras/nova'
+      preLoaderRoute: typeof ObrasNovaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/obras/$id/': {
+      id: '/obras/$id/'
+      path: '/'
+      fullPath: '/obras/$id/'
+      preLoaderRoute: typeof ObrasIdIndexRouteImport
+      parentRoute: typeof ObrasIdRoute
+    }
+    '/obras/$id/finalizar': {
+      id: '/obras/$id/finalizar'
+      path: '/finalizar'
+      fullPath: '/obras/$id/finalizar'
+      preLoaderRoute: typeof ObrasIdFinalizarRouteImport
+      parentRoute: typeof ObrasIdRoute
+    }
+    '/obras/$id/registros/$registroId': {
+      id: '/obras/$id/registros/$registroId'
+      path: '/registros/$registroId'
+      fullPath: '/obras/$id/registros/$registroId'
+      preLoaderRoute: typeof ObrasIdRegistrosRegistroIdRouteImport
+      parentRoute: typeof ObrasIdRoute
+    }
+    '/obras/$id/registros/novo': {
+      id: '/obras/$id/registros/novo'
+      path: '/registros/novo'
+      fullPath: '/obras/$id/registros/novo'
+      preLoaderRoute: typeof ObrasIdRegistrosNovoRouteImport
+      parentRoute: typeof ObrasIdRoute
+    }
   }
 }
 
+interface ObrasIdRouteChildren {
+  ObrasIdFinalizarRoute: typeof ObrasIdFinalizarRoute
+  ObrasIdIndexRoute: typeof ObrasIdIndexRoute
+  ObrasIdRegistrosRegistroIdRoute: typeof ObrasIdRegistrosRegistroIdRoute
+  ObrasIdRegistrosNovoRoute: typeof ObrasIdRegistrosNovoRoute
+}
+
+const ObrasIdRouteChildren: ObrasIdRouteChildren = {
+  ObrasIdFinalizarRoute: ObrasIdFinalizarRoute,
+  ObrasIdIndexRoute: ObrasIdIndexRoute,
+  ObrasIdRegistrosRegistroIdRoute: ObrasIdRegistrosRegistroIdRoute,
+  ObrasIdRegistrosNovoRoute: ObrasIdRegistrosNovoRoute,
+}
+
+const ObrasIdRouteWithChildren =
+  ObrasIdRoute._addFileChildren(ObrasIdRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRoute,
+  ObrasIdRoute: ObrasIdRouteWithChildren,
+  ObrasNovaRoute: ObrasNovaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -206,7 +206,7 @@ const fotoPlaceholders = [
   "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=600&q=70",
   "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=600&q=70",
   "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=70",
-  "https://images.unsplash.com/photo-1590644365607-1c5a0e0d5a24?w=600&q=70",
+  "https://images.unsplash.com/photo-1523413651479-597eb2da0ad6?w=600&q=70",
 ];
 
 export const registros: Registro[] = [

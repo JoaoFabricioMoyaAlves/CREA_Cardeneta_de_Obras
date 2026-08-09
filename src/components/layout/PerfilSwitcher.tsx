@@ -11,7 +11,9 @@ export function PerfilSwitcher() {
       <span className="hidden text-xs text-white/70 lg:inline">Visualizando como</span>
       <Select value={perfil} onValueChange={(v) => setPerfil(v as Perfil)}>
         <SelectTrigger className="h-9 w-[190px] border-white/20 bg-transparent text-sm text-white focus:ring-white/40">
-          <SelectValue />
+          <SelectValue placeholder="Selecione o perfil">
+            {PERFIS.find((p) => p.value === perfil)?.label}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {PERFIS.map((p) => (

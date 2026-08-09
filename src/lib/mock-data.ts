@@ -44,9 +44,9 @@ export const usuarios: Usuario[] = [
 ];
 
 export const usuarioAtualPorPerfil: Record<Perfil, Usuario> = {
-  administrador: usuarios[0],
-  engenheiro: usuarios[1],
-  proprietario: usuarios[3],
+  administrador: usuarios[0]!,
+  engenheiro: usuarios[1]!,
+  proprietario: usuarios[3]!,
 };
 
 export type Assinatura = {

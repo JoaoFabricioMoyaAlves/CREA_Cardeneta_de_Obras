@@ -16,6 +16,7 @@ import {
 } from "@/lib/constants";
 import { criarUsuario } from "@/lib/api/usuarios";
 import { ApiError } from "@/lib/api/client";
+import { formatarCpfInput } from "@/lib/format";
 import { AlertCircle, KeyRound, Loader2, MailCheck } from "lucide-react";
 import { toast } from "sonner";
 
@@ -126,8 +127,9 @@ export function UsuarioForm() {
                 inputMode="numeric"
                 className="min-h-11"
                 placeholder="000.000.000-00"
+                maxLength={14}
                 value={cpf}
-                onChange={(e) => setCpf(e.target.value)}
+                onChange={(e) => setCpf(formatarCpfInput(e.target.value))}
               />
             </div>
             <div className="space-y-2">

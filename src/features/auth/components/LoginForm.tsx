@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth-context";
 import { ApiError } from "@/lib/api/client";
+import { formatarCpfInput } from "@/lib/format";
 import { AlertCircle, HardHat, Loader2 } from "lucide-react";
 
 export function LoginForm() {
@@ -58,9 +59,10 @@ export function LoginForm() {
               id="cpf"
               inputMode="numeric"
               placeholder="000.000.000-00"
+              maxLength={14}
               className="min-h-11"
               value={cpf}
-              onChange={(e) => setCpf(e.target.value)}
+              onChange={(e) => setCpf(formatarCpfInput(e.target.value))}
               aria-invalid={Boolean(erro)}
             />
           </div>

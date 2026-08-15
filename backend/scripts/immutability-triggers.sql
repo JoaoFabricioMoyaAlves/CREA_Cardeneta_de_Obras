@@ -6,6 +6,14 @@
 -- migração futura que esqueça de checar o status. Nada que já tenha
 -- assinatura pode ser alterado ou excluído, nem pelo Administrador.
 --
+-- IMPORTANTE: as tabelas e colunas foram criadas pelo EF Core Migrations.
+-- Os nomes de TABELA são snake_case (configurados via ToTable(...)), mas os
+-- nomes de COLUNA seguem o padrão default do provider Npgsql, que é
+-- PascalCase idêntico ao nome da propriedade C# — por isso toda referência
+-- de coluna aqui usa aspas duplas com a grafia exata (ex: "Status", "Id"),
+-- nunca minúsculo sem aspas (o Postgres dobraria para lowercase e não
+-- acharia a coluna).
+--
 -- Rodar DEPOIS de `dotnet ef database update` (as tabelas precisam existir).
 -- Não é aplicado automaticamente pelo docker-compose de propósito.
 
@@ -18,20 +26,20 @@ CREATE OR REPLACE FUNCTION bloquear_alteracao_obra()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'DELETE' THEN
-        IF OLD.status <> 'PendenteAssinatura' THEN
-            RAISE EXCEPTION 'Obra % já foi assinada e não pode ser excluída.', OLD.id;
+        IF OLD."Status" <> 'PendenteAssinatura' THEN
+            RAISE EXCEPTION 'Obra % já foi assinada e não pode ser excluída.', OLD."Id";
         END IF;
         RETURN OLD;
     END IF;
 
-    IF OLD.status = 'Finalizada' THEN
-        RAISE EXCEPTION 'Obra % está finalizada e não pode mais ser alterada.', OLD.id;
+    IF OLD."Status" = 'Finalizada' THEN
+        RAISE EXCEPTION 'Obra % está finalizada e não pode mais ser alterada.', OLD."Id";
     END IF;
 
-    IF OLD.status = 'Ativa' THEN
-        IF NEW.status <> 'Finalizada'
-           OR (to_jsonb(NEW) - 'status') IS DISTINCT FROM (to_jsonb(OLD) - 'status') THEN
-            RAISE EXCEPTION 'Obra % já foi assinada; só a transição para Finalizada é permitida.', OLD.id;
+    IF OLD."Status" = 'Ativa' THEN
+        IF NEW."Status" <> 'Finalizada'
+           OR (to_jsonb(NEW) - 'Status') IS DISTINCT FROM (to_jsonb(OLD) - 'Status') THEN
+            RAISE EXCEPTION 'Obra % já foi assinada; só a transição para Finalizada é permitida.', OLD."Id";
         END IF;
     END IF;
 
@@ -52,14 +60,14 @@ CREATE OR REPLACE FUNCTION bloquear_alteracao_registro_assinavel()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'DELETE' THEN
-        IF OLD.status <> 'PendenteAssinatura' THEN
-            RAISE EXCEPTION '% (id %) já foi assinado e não pode ser excluído.', TG_TABLE_NAME, OLD.id;
+        IF OLD."Status" <> 'PendenteAssinatura' THEN
+            RAISE EXCEPTION '% (id %) já foi assinado e não pode ser excluído.', TG_TABLE_NAME, OLD."Id";
         END IF;
         RETURN OLD;
     END IF;
 
-    IF OLD.status <> 'PendenteAssinatura' THEN
-        RAISE EXCEPTION '% (id %) já foi assinado e não pode mais ser alterado.', TG_TABLE_NAME, OLD.id;
+    IF OLD."Status" <> 'PendenteAssinatura' THEN
+        RAISE EXCEPTION '% (id %) já foi assinado e não pode mais ser alterado.', TG_TABLE_NAME, OLD."Id";
     END IF;
 
     RETURN NEW;

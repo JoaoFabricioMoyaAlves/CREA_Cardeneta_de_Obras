@@ -63,7 +63,10 @@ public class CriarObraUseCase
             NomeEmpresa = request.NomeEmpresa,
             CnpjEmpresa = request.CnpjEmpresa,
             Status = StatusObra.PendenteAssinatura,
-            NumeroCaderneta = "PENDENTE", // substituído abaixo, após obter o Id gerado
+            // Placeholder único (nunca um literal fixo!) — se a segunda gravação
+            // abaixo falhar por qualquer motivo, uma tentativa futura não pode
+            // colidir com um "PENDENTE" órfão na constraint única desta coluna.
+            NumeroCaderneta = $"PENDENTE-{Guid.NewGuid()}",
         };
 
         _obras.Adicionar(obra);

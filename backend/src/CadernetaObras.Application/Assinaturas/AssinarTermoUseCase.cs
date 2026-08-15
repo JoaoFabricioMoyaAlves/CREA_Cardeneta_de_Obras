@@ -70,8 +70,16 @@ public class AssinarTermoUseCase
 
         await _unitOfWork.SalvarAsync(ct);
 
+        var profissional = await _usuarios.ObterPorIdAsync(obra.IdProfissional, ct);
+        var proprietario = await _usuarios.ObterPorIdAsync(obra.IdProprietario, ct);
+
         var assinaturas = termo.Assinaturas
-            .Select(a => new AssinaturaResumoDto(a.Papel.ToString(), a.UsuarioId, "", a.Data, a.CodHash))
+            .Select(a => new AssinaturaResumoDto(
+                a.Papel.ToString(),
+                a.UsuarioId,
+                a.UsuarioId == profissional?.Id ? profissional!.Nome : proprietario?.Nome ?? "",
+                a.Data,
+                a.CodHash))
             .ToList();
 
         return new TermoResponse(termo.Id, termo.ObraId, termo.DataConclusao, termo.Declaracao, termo.Status.ToString(), assinaturas);

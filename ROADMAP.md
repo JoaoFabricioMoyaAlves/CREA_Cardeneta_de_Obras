@@ -7,15 +7,16 @@
 
 ## STATUS ATUAL
 
-- **Fase em andamento:** Backend das Fases 2–7 escrito e compilando (código completo), aguardando infraestrutura local para testar de ponta a ponta.
+- **Fase em andamento:** Backend testado de ponta a ponta contra Postgres real (Docker/WSL desbloqueado pelo usuário) → próximo passo é conectar o frontend React à API de verdade.
 - **Última atualização:** 2026-08-15
-- **Próximo passo imediato — BLOQUEIO ATIVO:** o usuário optou por adiar a correção do Docker/WSL. Para retomar: rodar `wsl --install` num PowerShell como administrador (baixa uma distro Linux; exige reiniciar o PC), abrir o Docker Desktop, confirmar que inicia sem erro, e então:
-  1. `cd backend && docker compose up -d`
-  2. `dotnet ef database update --project src/CadernetaObras.Infrastructure --startup-project src/CadernetaObras.Api`
-  3. `docker exec -i caderneta-postgres psql -U caderneta_app -d gestao_obras < scripts/immutability-triggers.sql`
-  4. `dotnet run --project src/CadernetaObras.Api` e testar `POST /api/auth/login` com o usuário de bootstrap (ver `backend/README.md`)
-  5. Depois disso: conectar o frontend React à API real (troca de `mock-data.ts` por chamadas HTTP) e expor os endpoints de PDF que faltam.
-- **O que já existe no backend (`backend/`, ver `backend/README.md` para detalhes):** solução .NET 10 em Clean Architecture completa (Domain/Application/Infrastructure/Api/Tests), login JWT + Argon2id, CRUD de Obra/Registro/TermoConclusao, motor de assinatura digital real (hash SHA-256 do conteúdo + IP + user-agent + timestamp do servidor, tudo capturado no servidor), triggers Postgres de imutabilidade, geração de PDF (sem endpoint exposto ainda), upload de fotos para MinIO, cadastro de usuário com os 4 tipos e senha secreta de Admin, seed do primeiro Administrador via config. 12 testes unitários passando. **Ainda não testado contra um banco real** por causa do bloqueio de Docker/WSL acima — o frontend continua rodando 100% em cima de `mock-data.ts`, nada está de fato integrado ainda.
+- **Docker/WSL não é mais bloqueio** — usuário instalou o WSL e o Docker Desktop volta a funcionar. `docker compose up` funcionando (nota: a porta do Postgres local foi trocada de 5432 para **5433** no host, porque a 5432 já estava em uso por outro projeto nesta máquina — ver `docker-compose.yml`/`appsettings.Development.json`).
+- **Teste de ponta a ponta realizado com sucesso** contra um Postgres real: criação de Administrador via seed de bootstrap → login JWT → Admin cria Engenheiro e Proprietário → Admin cria Obra → dupla assinatura ativa a Obra (hash real gerado por assinatura) → tentativa de assinar de novo é rejeitada (409) → `UPDATE`/`DELETE` direto via SQL na obra assinada é bloqueado pelo trigger do Postgres → Engenheiro cria Registro de Visita → dupla assinatura marca como Assinado e imutável (`UPDATE` direto também bloqueado) → Termo de Conclusão criado e assinado por ambos → Obra passa a `Finalizada`. **A assinatura digital agora tem validade real** (hash SHA-256 + IP + user-agent + timestamp do servidor, tudo verificado funcionando).
+- **3 bugs reais encontrados e corrigidos durante esse teste** (não apareceriam sem rodar contra um banco de verdade):
+  1. `scripts/immutability-triggers.sql` referenciava colunas em `lowercase` (`OLD.status`, `OLD.id`), mas o EF Core gera colunas em `PascalCase` (`"Status"`, `"Id"`) por padrão — Postgres dobra identificador sem aspas para minúsculo, então o trigger nunca achava a coluna. Corrigido para usar `OLD."Status"`, `OLD."Id"` etc. em todo o script.
+  2. `CriarObraUseCase` usava um placeholder fixo `"PENDENTE"` para `NumeroCaderneta` antes de descobrir o Id gerado — se a segunda gravação falhasse, esse valor ficava órfão no banco e colidia com a constraint única na tentativa seguinte. Trocado para um placeholder único (`$"PENDENTE-{Guid.NewGuid()}"`).
+  3. `AssinarTermoUseCase` devolvia `nomeUsuario` vazio na resposta (só os outros dois motores de assinatura buscavam o nome do usuário) — corrigido para buscar `profissional`/`proprietario` igual aos demais.
+- **Próximo passo imediato:** conectar o frontend React à API real — trocar `mock-data.ts` por chamadas HTTP autenticadas (JWT), começando pela tela de Login. Depois: expor os endpoints de PDF (o serviço já existe, só falta o `GET /api/obras/{id}/pdf` e `GET /api/registros/{id}/pdf`) e o log de auditoria (Fase 8).
+- **Como rodar o backend agora** (infra já provisionada nesta máquina): `cd backend && docker compose up -d` (containers já criados, só sobem) e `dotnet run --project src/CadernetaObras.Api` — login de bootstrap e demais detalhes em `backend/README.md`.
 - **Decisões já tomadas (não reabrir sem motivo forte):**
   - Banco de dados: migrar de SQL Server (rascunho original) para **PostgreSQL**, **self-hosted na VPS própria** (sem Supabase).
   - Backend: **.NET (C#) com Clean Architecture** (Domain / Application / Infrastructure / API em camadas) — ver seção 3.6.
@@ -232,7 +233,7 @@ Essa camada só faz sentido **depois** que o núcleo (obras, registros, assinatu
 - [x] Migrar schema SQL (SQL Server → PostgreSQL) já com o modelo unificado de `Usuarios` + `perfil` (ver seção 3.5), usando EF Core Migrations — migration `InitialCreate` gerada
 - [x] Criar triggers `BEFORE UPDATE OR DELETE` de imutabilidade em Obra, Relato_Visita e Termo_Conclusao (bloqueio mesmo para Admin, uma vez assinado) — `backend/scripts/immutability-triggers.sql`
 - [x] Configurar Docker Compose local (Postgres + MinIO) para desenvolvimento — `backend/docker-compose.yml`
-- [ ] **BLOQUEADO:** rodar o stack local de verdade (`docker compose up`) e aplicar a migration — Docker Desktop não inicia nesta máquina porque o WSL2 não tem nenhuma distribuição instalada (`wsl --status` confirma). Precisa rodar `wsl --install` (exige reboot) antes de continuar. Todo o código já está pronto e compila, só falta essa etapa de infraestrutura local.
+- [x] Rodar o stack local de verdade (`docker compose up`) e aplicar a migration — desbloqueado após `wsl --install` + reboot; Postgres local mapeado na porta **5433** (5432 já em uso por outro projeto)
 - [ ] Provisionar PostgreSQL na VPS (via Docker, container isolado) — **usar `root_plan` antes de `root_execute`** ao mexer na VPS, conforme protocolo da ferramenta de administração
 - [ ] Provisionar MinIO (S3-compatible) na mesma VPS, container separado, para fotos e PDFs
 
@@ -243,13 +244,13 @@ Essa camada só faz sentido **depois** que o núcleo (obras, registros, assinatu
 - [x] Seed do primeiro Administrador via `Bootstrap:AdminCpf`/`AdminSenha` na configuração (resolve o problema de "quem cadastra o primeiro Admin")
 - [ ] Conectar tela de Login do frontend à API real (RF08) — ainda usa `mock-data.ts`
 - [ ] Middleware de proteção de rotas no frontend por perfil (menus e ações diferentes por perfil) — já existe visualmente com `PerfilProvider`, falta trocar a fonte de verdade do mock para o JWT real
-- [ ] Testar o fluxo fim a fim (aguardando desbloqueio do Docker/WSL da Fase 2)
+- [x] Testar o fluxo fim a fim — login de bootstrap, criação de Engenheiro/Proprietário e emissão de JWT confirmados contra Postgres real
 
 ### Fase 4 — CRUD de Obras/Cadernetas
 - [x] Administrador cria Caderneta (RF01) com cálculo automático de área total edificada, atribuindo Engenheiro + Proprietário responsáveis (RF02) — `POST /api/obras`, `CriarObraUseCase`
 - [x] Obra nasce em `PendenteAssinatura` — só vira `Ativa` após dupla assinatura (Engenheiro + Proprietário) — `AssinarObraUseCase`
 - [x] Listagem filtrada por perfil: Admin vê tudo, Engenheiro/Proprietário veem só as obras em que estão atribuídos — `GET /api/obras`, `ObraRepository.ListarVisiveisAsync`
-- [ ] Testado contra um Postgres real (aguardando Fase 2 desbloquear)
+- [x] Testado contra um Postgres real: obra criada, área total calculada corretamente (216,5 m²), listagem filtrada por perfil confirmada
 
 ### Fase 5 — Registros de Visita
 - [x] Engenheiro cria Relato de Visita com fases de serviço (RF03) — Admin e Proprietário não criam — `POST /api/registros`, valida `obra.Status == Ativa` e que o usuário é o profissional atribuído
@@ -265,7 +266,7 @@ Essa camada só faz sentido **depois** que o núcleo (obras, registros, assinatu
 - [x] Bloqueio de edição/exclusão após dupla assinatura confirmada (RF06, RNF04) — validado na Application layer (`EntidadeImutavelException`) e reforçado por trigger no Postgres (`scripts/immutability-triggers.sql`)
 - [x] Testes unitários cobrindo o motor de assinatura (primeira assinatura, dupla assinatura ativa a obra, usuário não atribuído, assinatura duplicada, entidade já imutável) — `AssinarObraUseCaseTests`, 12/12 passando
 - [ ] (Opcional/avançado) Integração com Timestamp Authority (RFC 3161) para reforçar não-repúdio
-- [ ] Testado contra um Postgres real (aguardando Fase 2 desbloquear) — inclusive validar que o trigger do Postgres realmente barra um `UPDATE` direto
+- [x] Testado contra um Postgres real: dupla assinatura de Obra, Registro de Visita e Termo de Conclusão confirmada de ponta a ponta, incluindo `UPDATE`/`DELETE` direto via SQL sendo barrado pelo trigger em todas as tabelas assináveis
 
 ### Fase 7 — Geração de PDF
 - [x] Template de PDF de registro individual (RF07) — `QuestPdfService.GerarPdfRegistro`, mas ainda **sem endpoint HTTP exposto**

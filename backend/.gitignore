@@ -1,0 +1,8 @@
+bin/
+obj/
+*.user
+.vs/
+
+# Nunca commitar segredos de produção
+appsettings.Production.json
+appsettings.*.local.json

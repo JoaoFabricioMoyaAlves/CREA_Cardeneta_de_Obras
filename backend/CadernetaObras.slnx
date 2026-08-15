@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CadernetaObras.Api/CadernetaObras.Api.csproj" />
+    <Project Path="src/CadernetaObras.Application/CadernetaObras.Application.csproj" />
+    <Project Path="src/CadernetaObras.Domain/CadernetaObras.Domain.csproj" />
+    <Project Path="src/CadernetaObras.Infrastructure/CadernetaObras.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CadernetaObras.Tests/CadernetaObras.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -7,9 +7,15 @@
 
 ## STATUS ATUAL
 
-- **Fase em andamento:** Fase 0 — Definição de escopo e planejamento (concluída) → prestes a iniciar Fase 1 (Design Visual no Lovable)
-- **Última atualização:** 2026-08-09
-- **Próximo passo imediato:** Rodar o prompt da Fase 1 no Lovable para gerar a tela de Login + design system.
+- **Fase em andamento:** Backend das Fases 2–7 escrito e compilando (código completo), aguardando infraestrutura local para testar de ponta a ponta.
+- **Última atualização:** 2026-08-15
+- **Próximo passo imediato — BLOQUEIO ATIVO:** o usuário optou por adiar a correção do Docker/WSL. Para retomar: rodar `wsl --install` num PowerShell como administrador (baixa uma distro Linux; exige reiniciar o PC), abrir o Docker Desktop, confirmar que inicia sem erro, e então:
+  1. `cd backend && docker compose up -d`
+  2. `dotnet ef database update --project src/CadernetaObras.Infrastructure --startup-project src/CadernetaObras.Api`
+  3. `docker exec -i caderneta-postgres psql -U caderneta_app -d gestao_obras < scripts/immutability-triggers.sql`
+  4. `dotnet run --project src/CadernetaObras.Api` e testar `POST /api/auth/login` com o usuário de bootstrap (ver `backend/README.md`)
+  5. Depois disso: conectar o frontend React à API real (troca de `mock-data.ts` por chamadas HTTP) e expor os endpoints de PDF que faltam.
+- **O que já existe no backend (`backend/`, ver `backend/README.md` para detalhes):** solução .NET 10 em Clean Architecture completa (Domain/Application/Infrastructure/Api/Tests), login JWT + Argon2id, CRUD de Obra/Registro/TermoConclusao, motor de assinatura digital real (hash SHA-256 do conteúdo + IP + user-agent + timestamp do servidor, tudo capturado no servidor), triggers Postgres de imutabilidade, geração de PDF (sem endpoint exposto ainda), upload de fotos para MinIO, cadastro de usuário com os 4 tipos e senha secreta de Admin, seed do primeiro Administrador via config. 12 testes unitários passando. **Ainda não testado contra um banco real** por causa do bloqueio de Docker/WSL acima — o frontend continua rodando 100% em cima de `mock-data.ts`, nada está de fato integrado ainda.
 - **Decisões já tomadas (não reabrir sem motivo forte):**
   - Banco de dados: migrar de SQL Server (rascunho original) para **PostgreSQL**, **self-hosted na VPS própria** (sem Supabase).
   - Backend: **.NET (C#) com Clean Architecture** (Domain / Application / Infrastructure / API em camadas) — ver seção 3.6.
@@ -214,49 +220,57 @@ Essa camada só faz sentido **depois** que o núcleo (obras, registros, assinatu
 - [x] Criação deste roadmap
 
 ### Fase 1 — Design visual completo no Lovable (todas as telas, sem lógica de backend)
-- [ ] Rodar o prompt da seção 5 no Lovable (cobre Login, Design System e todas as telas principais de uma vez)
-- [ ] Validar todas as telas (visual, responsividade tablet/desktop, os 3 estados de perfil)
-- [ ] Validar componentes base do design system gerados (botões, inputs, cards, badges de status)
-- [ ] Exportar/conectar o projeto Lovable ao GitHub para continuarmos localmente
-- [ ] Reorganizar os arquivos gerados pelo Lovable de acordo com a estrutura de pastas da seção 3, se o Lovable não seguir exatamente
+- [x] Rodar o prompt da seção 5 no Lovable (cobre Login, Design System e todas as telas principais de uma vez)
+- [x] Validar todas as telas (visual, responsividade tablet/desktop, os 3 estados de perfil) — testado via Playwright nos 3 perfis, zero erros de console/HTTP
+- [x] Validar componentes base do design system gerados (botões, inputs, cards, badges de status)
+- [x] Exportar/conectar o projeto Lovable ao GitHub — remoto `origin` aponta para `CREA_Cardeneta_de_Obras` (repo oficial), remoto `lovable` mantido à parte para futuras gerações
+- [x] Reorganizar os arquivos gerados pelo Lovable de acordo com a estrutura de pastas da seção 3 — o Lovable já seguiu a estrutura pedida
+- [x] Extras incorporados durante a Fase 1 (além do prompt original): recuperação de senha, cadastro de usuário com 4 tipos (Admin/Engenheiro/Arquiteto/Proprietário) e campo "Valor da obra"
 
 ### Fase 2 — Infraestrutura de backend
+- [x] Criar solução .NET seguindo a estrutura Clean Architecture da seção 3.6 (`Domain`, `Application`, `Infrastructure`, `API`) — pasta `backend/`, build limpo, 12 testes unitários passando
+- [x] Migrar schema SQL (SQL Server → PostgreSQL) já com o modelo unificado de `Usuarios` + `perfil` (ver seção 3.5), usando EF Core Migrations — migration `InitialCreate` gerada
+- [x] Criar triggers `BEFORE UPDATE OR DELETE` de imutabilidade em Obra, Relato_Visita e Termo_Conclusao (bloqueio mesmo para Admin, uma vez assinado) — `backend/scripts/immutability-triggers.sql`
+- [x] Configurar Docker Compose local (Postgres + MinIO) para desenvolvimento — `backend/docker-compose.yml`
+- [ ] **BLOQUEADO:** rodar o stack local de verdade (`docker compose up`) e aplicar a migration — Docker Desktop não inicia nesta máquina porque o WSL2 não tem nenhuma distribuição instalada (`wsl --status` confirma). Precisa rodar `wsl --install` (exige reboot) antes de continuar. Todo o código já está pronto e compila, só falta essa etapa de infraestrutura local.
 - [ ] Provisionar PostgreSQL na VPS (via Docker, container isolado) — **usar `root_plan` antes de `root_execute`** ao mexer na VPS, conforme protocolo da ferramenta de administração
 - [ ] Provisionar MinIO (S3-compatible) na mesma VPS, container separado, para fotos e PDFs
-- [ ] Criar solução .NET seguindo a estrutura Clean Architecture da seção 3.6 (`Domain`, `Application`, `Infrastructure`, `API`)
-- [ ] Migrar schema SQL (SQL Server → PostgreSQL) já com o modelo unificado de `Usuarios` + `perfil` (ver seção 3.5), usando EF Core Migrations
-- [ ] Criar triggers `BEFORE UPDATE OR DELETE` de imutabilidade em Obra, Relato_Visita e Termo_Conclusao (bloqueio mesmo para Admin, uma vez assinado)
-- [ ] Configurar Docker Compose local (Postgres + MinIO + API) para desenvolvimento, espelhando o ambiente da VPS
 
 ### Fase 3 — Autenticação e perfis
-- [ ] Implementar `AuthController` (.NET): login com CPF/senha, hash via Argon2id/BCrypt, emissão de JWT
-- [ ] Middleware de autenticação/autorização por perfil na API (Admin / Engenheiro / Proprietário)
-- [ ] Conectar tela de Login do frontend à API real (RF08)
-- [ ] Middleware de proteção de rotas no frontend por perfil (menus e ações diferentes por perfil)
-- [ ] Tela de cadastro de usuário (só Administrador cadastra Engenheiro e Proprietário)
+- [x] Implementar `AuthController` (.NET): login com CPF/senha, hash via Argon2id, emissão de JWT — `POST /api/auth/login`
+- [x] Autorização por perfil na API — cada use case da Application valida `ICurrentUserService.Perfil` (Admin / Engenheiro / Proprietário) antes de agir, em vez de só `[Authorize(Roles=...)]` genérico
+- [x] Cadastro de usuário via API (`POST /api/usuarios`, só Administrador) com os 4 tipos (Admin/Engenheiro/Arquiteto/Proprietário) e senha secreta de dev para novo Admin, espelhando o formulário do frontend
+- [x] Seed do primeiro Administrador via `Bootstrap:AdminCpf`/`AdminSenha` na configuração (resolve o problema de "quem cadastra o primeiro Admin")
+- [ ] Conectar tela de Login do frontend à API real (RF08) — ainda usa `mock-data.ts`
+- [ ] Middleware de proteção de rotas no frontend por perfil (menus e ações diferentes por perfil) — já existe visualmente com `PerfilProvider`, falta trocar a fonte de verdade do mock para o JWT real
+- [ ] Testar o fluxo fim a fim (aguardando desbloqueio do Docker/WSL da Fase 2)
 
 ### Fase 4 — CRUD de Obras/Cadernetas
-- [ ] Administrador cria Caderneta (RF01) com cálculo automático de área total edificada, atribuindo Engenheiro + Proprietário responsáveis (RF02)
-- [ ] Obra nasce em `pendente_assinatura` — só vira `ativa` após dupla assinatura (Engenheiro + Proprietário)
-- [ ] Listagem filtrada por perfil: Admin vê tudo, Engenheiro/Proprietário veem só as obras em que estão atribuídos
+- [x] Administrador cria Caderneta (RF01) com cálculo automático de área total edificada, atribuindo Engenheiro + Proprietário responsáveis (RF02) — `POST /api/obras`, `CriarObraUseCase`
+- [x] Obra nasce em `PendenteAssinatura` — só vira `Ativa` após dupla assinatura (Engenheiro + Proprietário) — `AssinarObraUseCase`
+- [x] Listagem filtrada por perfil: Admin vê tudo, Engenheiro/Proprietário veem só as obras em que estão atribuídos — `GET /api/obras`, `ObraRepository.ListarVisiveisAsync`
+- [ ] Testado contra um Postgres real (aguardando Fase 2 desbloquear)
 
 ### Fase 5 — Registros de Visita
-- [ ] Engenheiro cria Relato de Visita com fases de serviço (RF03) — Admin e Proprietário não criam
-- [ ] Upload de imagens vinculadas ao relato (só Engenheiro, no momento da criação)
-- [ ] Ocorrências vinculadas ao relato (RF04)
-- [ ] Proprietário só visualiza e assina, nunca cria/edita
+- [x] Engenheiro cria Relato de Visita com fases de serviço (RF03) — Admin e Proprietário não criam — `POST /api/registros`, valida `obra.Status == Ativa` e que o usuário é o profissional atribuído
+- [x] Upload de imagens vinculadas ao relato (só Engenheiro, no momento da criação, obra ainda `PendenteAssinatura` do registro) — `POST /api/registros/{id}/imagens` → MinIO
+- [ ] Ocorrências vinculadas ao relato (RF04) — ainda não modelado como entidade separada; hoje cabe dentro de `DecisoesOrientacoes`, avaliar se precisa de tabela própria
+- [x] Proprietário só visualiza e assina, nunca cria/edita — reforçado tanto no use case quanto na ausência de endpoints de update/delete
 
 ### Fase 6 — Motor de Assinatura Digital
-- [ ] Componente de captura via canvas (touch/mouse)
-- [ ] Fluxo de dupla assinatura: Engenheiro assina → aguarda Proprietário assinar (ou ordem inversa) → só com as duas o registro vira `imutável`
-- [ ] Geração de hash SHA-256 do conteúdo do registro no momento de cada assinatura
-- [ ] Registro de `id_usuario`, `papel`, IP, user-agent, timestamp do servidor por assinatura
-- [ ] Bloqueio de edição/exclusão após dupla assinatura confirmada (RF06, RNF04) — validado na Application layer e reforçado por trigger no Postgres
+- [ ] Componente de captura via canvas (touch/mouse) — segue existindo só no frontend (visual); o backend não depende do desenho, só confirma a ação de assinar
+- [x] Fluxo de dupla assinatura: Engenheiro assina → aguarda Proprietário assinar (ou ordem inversa) → só com as duas o registro vira `imutável` — implementado igual para Obra, Relato de Visita e Termo de Conclusão
+- [x] Geração de hash SHA-256 do conteúdo do registro no momento de cada assinatura — `Sha256HashService` + conteúdo canônico montado por entidade
+- [x] Registro de `usuario_id`, `papel`, IP, user-agent, timestamp do servidor por assinatura — capturados 100% no backend via `ICurrentUserService`, nunca enviados pelo cliente
+- [x] Bloqueio de edição/exclusão após dupla assinatura confirmada (RF06, RNF04) — validado na Application layer (`EntidadeImutavelException`) e reforçado por trigger no Postgres (`scripts/immutability-triggers.sql`)
+- [x] Testes unitários cobrindo o motor de assinatura (primeira assinatura, dupla assinatura ativa a obra, usuário não atribuído, assinatura duplicada, entidade já imutável) — `AssinarObraUseCaseTests`, 12/12 passando
 - [ ] (Opcional/avançado) Integração com Timestamp Authority (RFC 3161) para reforçar não-repúdio
+- [ ] Testado contra um Postgres real (aguardando Fase 2 desbloquear) — inclusive validar que o trigger do Postgres realmente barra um `UPDATE` direto
 
 ### Fase 7 — Geração de PDF
-- [ ] Template de PDF de registro individual (RF07, subfluxo "Salvar Registro em PDF")
-- [ ] Template de PDF da caderneta completa/finalizada
+- [x] Template de PDF de registro individual (RF07) — `QuestPdfService.GerarPdfRegistro`, mas ainda **sem endpoint HTTP exposto**
+- [x] Template de PDF da caderneta completa/finalizada — `QuestPdfService.GerarPdfCaderneta`, mesma pendência de endpoint
+- [ ] Expor `GET /api/obras/{id}/pdf` e `GET /api/registros/{id}/pdf`
 - [ ] Armazenamento do PDF gerado no MinIO (documento oficial imutável — RF05)
 
 ### Fase 8 — Auditoria e segurança

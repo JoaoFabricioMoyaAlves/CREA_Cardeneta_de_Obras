@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatarDataHora } from "@/lib/format";
-import { BadgeCheck, Clock, Loader2, PenLine } from "lucide-react";
+import { BadgeCheck, Clock, Loader2, PenLine, ShieldCheck } from "lucide-react";
 import { SignatureCanvas } from "./SignatureCanvas";
 
 export type AssinaturaSlot = {
@@ -13,6 +13,10 @@ export type AssinaturaSlot = {
   // true só quando: é o usuário logado, é o papel dele nesta obra, e ele
   // ainda não assinou — nunca é possível assinar pelo outro lado.
   podeAssinar: boolean;
+  // Carimbo de tempo RFC 3161 de uma autoridade externa — reforço opcional
+  // de não-repúdio além do timestamp do próprio servidor.
+  carimboTempoVerificado?: boolean | undefined;
+  carimboTempoAutoridade?: string | null | undefined;
 };
 
 const LABEL_PAPEL: Record<AssinaturaSlot["papel"], string> = {
@@ -26,6 +30,8 @@ function AssinaturaStatusCard({
   assinadoEm,
   hash,
   podeAssinar,
+  carimboTempoVerificado,
+  carimboTempoAutoridade,
   assinando,
   onAssinar,
 }: AssinaturaSlot & { assinando: boolean; onAssinar: () => Promise<void> }) {
@@ -61,6 +67,12 @@ function AssinaturaStatusCard({
           {hash && (
             <p className="font-mono text-xs text-muted-foreground">
               hash {hash.slice(0, 6)}…{hash.slice(-4)}
+            </p>
+          )}
+          {carimboTempoVerificado && (
+            <p className="flex items-center gap-1 text-xs text-primary" title={`Carimbo de tempo RFC 3161 — ${carimboTempoAutoridade}`}>
+              <ShieldCheck className="size-3.5" />
+              Carimbo de tempo verificado ({carimboTempoAutoridade})
             </p>
           )}
         </div>

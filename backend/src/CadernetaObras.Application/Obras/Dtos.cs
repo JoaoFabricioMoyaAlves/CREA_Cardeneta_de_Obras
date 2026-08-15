@@ -22,7 +22,16 @@ public record CriarObraRequest(
     string? CnpjEmpresa
 );
 
-public record AssinaturaResumoDto(string Papel, Guid UsuarioId, string NomeUsuario, DateTime? Data, string? Hash);
+public record AssinaturaResumoDto(
+    string Papel,
+    Guid UsuarioId,
+    string NomeUsuario,
+    DateTime? Data,
+    string? Hash,
+    bool CarimboTempoVerificado = false,
+    string? CarimboTempoAutoridade = null,
+    DateTime? CarimboTempoDataHora = null
+);
 
 public record ObraResponse(
     int Id,

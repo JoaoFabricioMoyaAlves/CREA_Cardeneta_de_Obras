@@ -1,6 +1,6 @@
 # Backend — Caderneta de Obras Digital
 
-API .NET (Clean Architecture) que substitui os dados mockados do frontend por um banco PostgreSQL real, com autenticação JWT, motor de assinatura digital (hash SHA-256 + IP + user-agent + timestamp do servidor) e armazenamento de fotos/PDFs no MinIO.
+API .NET (Clean Architecture) que substitui os dados mockados do frontend por um banco PostgreSQL real, com autenticação JWT, motor de assinatura digital (hash SHA-256 + IP + user-agent + timestamp do servidor + carimbo de tempo RFC 3161 opcional), log de auditoria append-only e armazenamento de fotos/PDFs no MinIO.
 
 > Ver `ROADMAP.md` na raiz do projeto para o contexto completo (decisões de arquitetura, RBAC, seção 3.6).
 
@@ -73,25 +73,29 @@ Fluxo de dependências (Clean Architecture): `Api` → `Infrastructure` → `App
 | POST | `/api/obras/{id}/assinar` | Engenheiro/Proprietário da obra | Assina a abertura (gera hash+IP+timestamp) |
 | GET/POST | `/api/obras/{obraId}/registros` | Envolvidos / Engenheiro | Listar / criar registro de visita |
 | POST | `/api/registros/{id}/imagens` | Engenheiro | Upload de foto (multipart/form-data, campo `arquivo`) |
+| GET | `/api/registros/{registroId}/imagens/{imagemId}/url` | Envolvidos na obra | URL presignada (15min) do MinIO para exibir a foto |
 | POST | `/api/registros/{id}/assinar` | Engenheiro/Proprietário da obra | Assina o registro |
+| GET | `/api/obras/{obraId}/termo-conclusao` | Envolvidos na obra | Consulta o termo de conclusão (200 com o termo, ou 204 se ainda não existe) |
 | POST | `/api/termos-conclusao` | Engenheiro | Emite termo de conclusão |
 | POST | `/api/termos-conclusao/{id}/assinar` | Engenheiro/Proprietário | Assina o termo (finaliza a obra quando ambos assinam) |
+| GET | `/api/auditoria?limite=200` | Administrador | Log de auditoria (RF09) — mais recentes primeiro |
 | GET | `/health` | Público | Health check |
 
 ## O que esse backend já resolve (em relação ao protótipo visual)
 
 - Login real com JWT + Argon2id (não é mais "qualquer CPF e senha 4+").
-- Assinatura real: hash SHA-256 do conteúdo exato do registro, IP e user-agent capturados no servidor (nunca enviados pelo cliente), timestamp do servidor (`DateTime.UtcNow`, nunca do navegador).
-- Imutabilidade em duas camadas: a Application recusa alterar/excluir uma vez assinado (e nem expõe endpoints de update/delete para registros assinados), e o Postgres tem triggers que bloqueiam fisicamente qualquer `UPDATE`/`DELETE` indevido — mesmo via acesso direto ao banco.
+- Assinatura real: hash SHA-256 do conteúdo exato do registro, IP e user-agent capturados no servidor (nunca enviados pelo cliente), timestamp do servidor (`DateTime.UtcNow`, nunca do navegador), e opcionalmente um **carimbo de tempo RFC 3161** de uma autoridade externa real (`ITimestampAuthorityService` / `Rfc3161TimestampService`, testado contra `timestamp.digicert.com`) — best-effort, nunca bloqueia a assinatura se a TSA estiver fora do ar.
+- Imutabilidade em duas camadas: a Application recusa alterar/excluir uma vez assinado (e nem expõe endpoints de update/delete para registros assinados), e o Postgres tem triggers que bloqueiam fisicamente qualquer `UPDATE`/`DELETE` indevido — mesmo via acesso direto ao banco. O log de auditoria segue a mesma regra (append-only).
+- Log de auditoria (RF09): toda ação relevante do sistema é registrada (`IAuditLogger`), consultável via `GET /api/auditoria` (Admin).
 - RBAC aplicado em cada use case (Administrador/Engenheiro/Proprietário), não só na UI.
+- Frontend React já conectado a esta API de ponta a ponta (login, obras, registros, assinaturas, usuários, auditoria).
 
 ## O que ainda falta (próximos passos do ROADMAP.md)
 
-- Testes automatizados (unitários dos use cases, principalmente do motor de assinatura).
 - Geração de PDF está implementada (`QuestPdfService`) mas sem endpoint HTTP exposto ainda — falta um `GET /api/obras/{id}/pdf` e `GET /api/registros/{id}/pdf`.
 - Envio de e-mail real (hoje a senha provisória do usuário criado é devolvida na resposta da API — em produção isso precisa ir por e-mail, nunca na resposta HTTP).
-- Log de auditoria (Fase 8 do roadmap).
-- Conectar o frontend React a esta API (hoje o frontend ainda usa `mock-data.ts`).
+- Checklist de segurança de produção (HTTPS, secrets fora do código, rate limiting no login).
+- Captura de IP confiável atrás de reverse proxy — hoje confia cegamente em `X-Forwarded-For`; só é seguro depois que o Nginx do deploy existir e sobrescrever esse header (deixado de propósito para a Fase 10).
 - Deploy na VPS via Docker Compose + Nginx + HTTPS (Fase 10).
 - Webhooks/MCP/agente de IA (Fase 9).
 
@@ -105,4 +109,5 @@ Jwt__SigningKey
 Minio__AccessKey / Minio__SecretKey
 SegurancaAdmin__SenhaSecretaDev
 Bootstrap__AdminCpf / Bootstrap__AdminSenha (usar só uma vez e depois remover)
+Tsa__Url (opcional — vazio desativa o carimbo de tempo RFC 3161, o resto do sistema funciona normalmente)
 ```

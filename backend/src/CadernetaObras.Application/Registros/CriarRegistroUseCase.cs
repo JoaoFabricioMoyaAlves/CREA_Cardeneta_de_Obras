@@ -13,16 +13,18 @@ public class CriarRegistroUseCase
     private readonly IUsuarioRepository _usuarios;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUser;
+    private readonly IAuditLogger _auditLogger;
 
     public CriarRegistroUseCase(
         IRelatoVisitaRepository registros, IObraRepository obras, IUsuarioRepository usuarios,
-        IUnitOfWork unitOfWork, ICurrentUserService currentUser)
+        IUnitOfWork unitOfWork, ICurrentUserService currentUser, IAuditLogger auditLogger)
     {
         _registros = registros;
         _obras = obras;
         _usuarios = usuarios;
         _unitOfWork = unitOfWork;
         _currentUser = currentUser;
+        _auditLogger = auditLogger;
     }
 
     public async Task<RegistroResponse> ExecutarAsync(CriarRegistroRequest request, CancellationToken ct = default)
@@ -58,6 +60,9 @@ public class CriarRegistroUseCase
         };
 
         _registros.Adicionar(registro);
+        await _unitOfWork.SalvarAsync(ct); // gera registro.Id
+
+        _auditLogger.Registrar("RegistroVisitaCriado", _currentUser.UsuarioId, "RelatoVisita", registro.Id.ToString(), $"ObraId: {obra.Id}");
         await _unitOfWork.SalvarAsync(ct);
 
         var profissional = await _usuarios.ObterPorIdAsync(obra.IdProfissional, ct);

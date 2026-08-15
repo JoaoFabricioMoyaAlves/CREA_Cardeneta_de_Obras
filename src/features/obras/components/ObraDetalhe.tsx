@@ -88,6 +88,8 @@ export function ObraDetalhe({
       nome: obra.nomeProfissional,
       assinadoEm: assinaturaEngenheiro?.data ?? null,
       hash: assinaturaEngenheiro?.hash ?? null,
+      carimboTempoVerificado: assinaturaEngenheiro?.carimboTempoVerificado,
+      carimboTempoAutoridade: assinaturaEngenheiro?.carimboTempoAutoridade,
       podeAssinar:
         obra.status === "PendenteAssinatura" &&
         !assinaturaEngenheiro &&
@@ -99,6 +101,8 @@ export function ObraDetalhe({
       nome: obra.nomeProprietario,
       assinadoEm: assinaturaProprietario?.data ?? null,
       hash: assinaturaProprietario?.hash ?? null,
+      carimboTempoVerificado: assinaturaProprietario?.carimboTempoVerificado,
+      carimboTempoAutoridade: assinaturaProprietario?.carimboTempoAutoridade,
       podeAssinar:
         obra.status === "PendenteAssinatura" &&
         !assinaturaProprietario &&
@@ -117,6 +121,8 @@ export function ObraDetalhe({
           nome: obra.nomeProfissional,
           assinadoEm: termoAssEngenheiro?.data ?? null,
           hash: termoAssEngenheiro?.hash ?? null,
+          carimboTempoVerificado: termoAssEngenheiro?.carimboTempoVerificado,
+          carimboTempoAutoridade: termoAssEngenheiro?.carimboTempoAutoridade,
           podeAssinar:
             termo.status === "PendenteAssinatura" &&
             !termoAssEngenheiro &&
@@ -128,6 +134,8 @@ export function ObraDetalhe({
           nome: obra.nomeProprietario,
           assinadoEm: termoAssProprietario?.data ?? null,
           hash: termoAssProprietario?.hash ?? null,
+          carimboTempoVerificado: termoAssProprietario?.carimboTempoVerificado,
+          carimboTempoAutoridade: termoAssProprietario?.carimboTempoAutoridade,
           podeAssinar:
             termo.status === "PendenteAssinatura" &&
             !termoAssProprietario &&

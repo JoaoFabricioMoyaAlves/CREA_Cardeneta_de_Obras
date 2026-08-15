@@ -15,16 +15,18 @@ public class AdicionarImagemUseCase
     private readonly IUnitOfWork _unitOfWork;
     private readonly IStorageService _storage;
     private readonly ICurrentUserService _currentUser;
+    private readonly IAuditLogger _auditLogger;
 
     public AdicionarImagemUseCase(
         IRelatoVisitaRepository registros, IObraRepository obras, IUnitOfWork unitOfWork,
-        IStorageService storage, ICurrentUserService currentUser)
+        IStorageService storage, ICurrentUserService currentUser, IAuditLogger auditLogger)
     {
         _registros = registros;
         _obras = obras;
         _unitOfWork = unitOfWork;
         _storage = storage;
         _currentUser = currentUser;
+        _auditLogger = auditLogger;
     }
 
     public async Task<ImagemResponse> ExecutarAsync(AdicionarImagemRequest request, CancellationToken ct = default)
@@ -55,6 +57,9 @@ public class AdicionarImagemUseCase
         };
 
         registro.Imagens.Add(imagem);
+        await _unitOfWork.SalvarAsync(ct); // gera imagem.Id
+
+        _auditLogger.Registrar("ImagemAdicionada", _currentUser.UsuarioId, "RelatoVisita", registro.Id.ToString(), imagem.Name);
         await _unitOfWork.SalvarAsync(ct);
 
         return new ImagemResponse(imagem.Id, imagem.Name, imagem.StorageKey, imagem.Data);

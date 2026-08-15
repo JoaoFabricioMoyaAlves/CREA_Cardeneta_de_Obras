@@ -14,16 +14,18 @@ public class CriarTermoUseCase
     private readonly IUsuarioRepository _usuarios;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUser;
+    private readonly IAuditLogger _auditLogger;
 
     public CriarTermoUseCase(
         ITermoConclusaoRepository termos, IObraRepository obras, IUsuarioRepository usuarios,
-        IUnitOfWork unitOfWork, ICurrentUserService currentUser)
+        IUnitOfWork unitOfWork, ICurrentUserService currentUser, IAuditLogger auditLogger)
     {
         _termos = termos;
         _obras = obras;
         _usuarios = usuarios;
         _unitOfWork = unitOfWork;
         _currentUser = currentUser;
+        _auditLogger = auditLogger;
     }
 
     public async Task<TermoResponse> ExecutarAsync(CriarTermoRequest request, CancellationToken ct = default)
@@ -52,6 +54,9 @@ public class CriarTermoUseCase
         };
 
         _termos.Adicionar(termo);
+        await _unitOfWork.SalvarAsync(ct); // gera termo.Id
+
+        _auditLogger.Registrar("TermoConclusaoCriado", _currentUser.UsuarioId, "TermoConclusao", termo.Id.ToString(), $"ObraId: {obra.Id}");
         await _unitOfWork.SalvarAsync(ct);
 
         return new TermoResponse(termo.Id, termo.ObraId, termo.DataConclusao, termo.Declaracao, termo.Status.ToString(), []);

@@ -19,6 +19,8 @@ public class AssinarObraUseCaseTests
     private readonly Mock<IUnitOfWork> _unitOfWork = new();
     private readonly Mock<IHashService> _hashService = new();
     private readonly Mock<ICurrentUserService> _currentUser = new();
+    private readonly Mock<IAuditLogger> _auditLogger = new();
+    private readonly Mock<ITimestampAuthorityService> _tsa = new();
 
     private Obra CriarObraPendente() => new()
     {
@@ -30,16 +32,21 @@ public class AssinarObraUseCaseTests
         Assinaturas = new List<AssinaturaObra>(),
     };
 
+    private const string HashFixo = "deadbeef00112233445566778899aabbccddeeff0011223344556677889900";
+
     private AssinarObraUseCase CriarUseCase()
     {
-        _hashService.Setup(h => h.GerarHashSha256(It.IsAny<string>())).Returns("hash-fixo");
+        _hashService.Setup(h => h.GerarHashSha256(It.IsAny<string>())).Returns(HashFixo);
+        _tsa.Setup(t => t.ObterCarimboAsync(It.IsAny<byte[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((CarimboTempo?)null); // TSA desligada nos testes — comportamento best-effort
         _usuarioRepo.Setup(r => r.ObterPorIdAsync(_engenheiroId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Usuario { Id = _engenheiroId, Nome = "Eng. Teste", Perfil = PerfilUsuario.Engenheiro });
         _usuarioRepo.Setup(r => r.ObterPorIdAsync(_proprietarioId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Usuario { Id = _proprietarioId, Nome = "Prop. Teste", Perfil = PerfilUsuario.Proprietario });
 
         return new AssinarObraUseCase(
-            _obraRepo.Object, _usuarioRepo.Object, _unitOfWork.Object, _hashService.Object, _currentUser.Object);
+            _obraRepo.Object, _usuarioRepo.Object, _unitOfWork.Object, _hashService.Object,
+            _currentUser.Object, _auditLogger.Object, _tsa.Object);
     }
 
     [Fact]
@@ -58,7 +65,7 @@ public class AssinarObraUseCaseTests
         var assinatura = Assert.Single(obra.Assinaturas);
         Assert.Equal(PapelAssinatura.Engenheiro, assinatura.Papel);
         Assert.Equal("127.0.0.1", assinatura.Ip);
-        Assert.Equal("hash-fixo", assinatura.CodHash);
+        Assert.Equal(HashFixo, assinatura.CodHash);
     }
 
     [Fact]

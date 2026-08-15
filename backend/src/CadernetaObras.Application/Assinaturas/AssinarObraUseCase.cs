@@ -21,16 +21,21 @@ public class AssinarObraUseCase
     private readonly IUnitOfWork _unitOfWork;
     private readonly IHashService _hashService;
     private readonly ICurrentUserService _currentUser;
+    private readonly IAuditLogger _auditLogger;
+    private readonly ITimestampAuthorityService _tsa;
 
     public AssinarObraUseCase(
         IObraRepository obras, IUsuarioRepository usuarios, IUnitOfWork unitOfWork,
-        IHashService hashService, ICurrentUserService currentUser)
+        IHashService hashService, ICurrentUserService currentUser, IAuditLogger auditLogger,
+        ITimestampAuthorityService tsa)
     {
         _obras = obras;
         _usuarios = usuarios;
         _unitOfWork = unitOfWork;
         _hashService = hashService;
         _currentUser = currentUser;
+        _auditLogger = auditLogger;
+        _tsa = tsa;
     }
 
     public async Task<ObraResponse> ExecutarAsync(int obraId, CancellationToken ct = default)
@@ -48,6 +53,7 @@ public class AssinarObraUseCase
 
         var conteudoCanonico = MontarConteudoCanonico(obra);
         var hash = _hashService.GerarHashSha256(conteudoCanonico);
+        var carimbo = await _tsa.ObterCarimboAsync(Convert.FromHexString(hash), ct);
 
         var assinatura = new AssinaturaObra
         {
@@ -58,14 +64,22 @@ public class AssinarObraUseCase
             CodHash = hash,
             Ip = _currentUser.Ip,
             UserAgent = _currentUser.UserAgent,
+            TsaToken = carimbo?.TokenBase64,
+            TsaDataHora = carimbo?.DataHoraTsa,
+            TsaAutoridade = carimbo?.Autoridade,
         };
 
         obra.Assinaturas.Add(assinatura);
 
+        _auditLogger.Registrar("ObraAssinada", _currentUser.UsuarioId, "Obra", obra.Id.ToString(), $"Papel: {papel}");
+
         var assinouEngenheiro = obra.Assinaturas.Any(a => a.Papel == PapelAssinatura.Engenheiro);
         var assinouProprietario = obra.Assinaturas.Any(a => a.Papel == PapelAssinatura.Proprietario);
         if (assinouEngenheiro && assinouProprietario)
+        {
             obra.Status = StatusObra.Ativa;
+            _auditLogger.Registrar("ObraAtivada", _currentUser.UsuarioId, "Obra", obra.Id.ToString());
+        }
 
         await _unitOfWork.SalvarAsync(ct);
 

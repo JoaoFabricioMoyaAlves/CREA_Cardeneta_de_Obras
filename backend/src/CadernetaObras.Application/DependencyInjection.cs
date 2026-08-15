@@ -1,4 +1,5 @@
 using CadernetaObras.Application.Assinaturas;
+using CadernetaObras.Application.Auditoria;
 using CadernetaObras.Application.Auth;
 using CadernetaObras.Application.Obras;
 using CadernetaObras.Application.Registros;
@@ -13,6 +14,7 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<LoginUseCase>();
+        services.AddScoped<ListarAuditoriaUseCase>();
 
         services.AddScoped<CriarUsuarioUseCase>();
         services.AddScoped<ListarUsuariosUseCase>();

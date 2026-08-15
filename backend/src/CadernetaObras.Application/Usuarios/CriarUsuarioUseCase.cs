@@ -15,19 +15,22 @@ public class CriarUsuarioUseCase
     private readonly IPasswordHasher _passwordHasher;
     private readonly ICurrentUserService _currentUser;
     private readonly IConfiguration _configuration;
+    private readonly IAuditLogger _auditLogger;
 
     public CriarUsuarioUseCase(
         IUsuarioRepository usuarios,
         IUnitOfWork unitOfWork,
         IPasswordHasher passwordHasher,
         ICurrentUserService currentUser,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IAuditLogger auditLogger)
     {
         _usuarios = usuarios;
         _unitOfWork = unitOfWork;
         _passwordHasher = passwordHasher;
         _currentUser = currentUser;
         _configuration = configuration;
+        _auditLogger = auditLogger;
     }
 
     public async Task<UsuarioCriadoResponse> ExecutarAsync(CriarUsuarioRequest request, CancellationToken ct = default)
@@ -72,6 +75,7 @@ public class CriarUsuarioUseCase
         };
 
         _usuarios.Adicionar(usuario);
+        _auditLogger.Registrar("UsuarioCriado", _currentUser.UsuarioId, "Usuario", usuario.Id.ToString(), $"Perfil: {usuario.Perfil}");
         await _unitOfWork.SalvarAsync(ct);
 
         var response = new UsuarioResponse(

@@ -110,3 +110,12 @@ DROP TRIGGER IF EXISTS trg_bloquear_alteracao_assinaturas_termo ON assinaturas_t
 CREATE TRIGGER trg_bloquear_alteracao_assinaturas_termo
     BEFORE UPDATE OR DELETE ON assinaturas_termo_conclusao
     FOR EACH ROW EXECUTE FUNCTION bloquear_alteracao_assinatura();
+
+-- =====================================================================
+-- Log de auditoria (RF09): também append-only — reaproveita a mesma
+-- função das assinaturas, já que a regra é idêntica (nunca editar/apagar).
+-- =====================================================================
+DROP TRIGGER IF EXISTS trg_bloquear_alteracao_logs_auditoria ON logs_auditoria;
+CREATE TRIGGER trg_bloquear_alteracao_logs_auditoria
+    BEFORE UPDATE OR DELETE ON logs_auditoria
+    FOR EACH ROW EXECUTE FUNCTION bloquear_alteracao_assinatura();

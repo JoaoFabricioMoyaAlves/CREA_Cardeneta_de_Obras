@@ -32,6 +32,8 @@ public class AssinaturaTermoConclusaoConfiguration : IEntityTypeConfiguration<As
         b.Property(a => a.Ip).HasMaxLength(45).IsRequired();
         b.Property(a => a.UserAgent).HasMaxLength(500).IsRequired();
         b.Property(a => a.Papel).HasConversion<string>().HasMaxLength(20);
+        b.Property(a => a.TsaToken).HasColumnType("text");
+        b.Property(a => a.TsaAutoridade).HasMaxLength(255);
 
         b.HasIndex(a => new { a.TermoConclusaoId, a.UsuarioId }).IsUnique();
     }

@@ -56,6 +56,8 @@ public class AssinaturaObraConfiguration : IEntityTypeConfiguration<AssinaturaOb
         b.Property(a => a.Ip).HasMaxLength(45).IsRequired();
         b.Property(a => a.UserAgent).HasMaxLength(500).IsRequired();
         b.Property(a => a.Papel).HasConversion<string>().HasMaxLength(20);
+        b.Property(a => a.TsaToken).HasColumnType("text");
+        b.Property(a => a.TsaAutoridade).HasMaxLength(255);
 
         // Um usuário só pode assinar uma vez cada obra.
         b.HasIndex(a => new { a.ObraId, a.UsuarioId }).IsUnique();

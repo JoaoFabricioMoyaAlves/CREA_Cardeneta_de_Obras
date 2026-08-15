@@ -46,6 +46,21 @@ export type AssinaturaResumo = {
   nomeUsuario: string;
   data: string | null;
   hash: string | null;
+  carimboTempoVerificado: boolean;
+  carimboTempoAutoridade: string | null;
+  carimboTempoDataHora: string | null;
+};
+
+export type LogAuditoriaResponse = {
+  id: number;
+  dataHoraUtc: string;
+  usuarioNome: string | null;
+  usuarioPerfil: PerfilApi | null;
+  acao: string;
+  entidadeTipo: string | null;
+  entidadeId: string | null;
+  detalhes: string | null;
+  ip: string;
 };
 
 export type StatusObraApi = "PendenteAssinatura" | "Ativa" | "Finalizada";

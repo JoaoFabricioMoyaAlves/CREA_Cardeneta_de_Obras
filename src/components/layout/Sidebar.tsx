@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { FolderOpen, LayoutDashboard, PlusCircle, Users } from "lucide-react";
+import { FolderOpen, LayoutDashboard, PlusCircle, ShieldCheck, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
 export function Sidebar() {
@@ -11,6 +11,7 @@ export function Sidebar() {
       ? [
           { to: "/obras/nova", label: "Nova obra", icon: PlusCircle },
           { to: "/usuarios", label: "Usuários", icon: Users },
+          { to: "/auditoria", label: "Auditoria", icon: ShieldCheck },
         ]
       : []),
   ] as const;

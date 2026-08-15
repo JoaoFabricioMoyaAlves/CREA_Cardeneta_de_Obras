@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
@@ -24,6 +25,11 @@ import { Route as ObrasIdRegistrosNovoRouteImport } from './routes/obras.$id.reg
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuditoriaRoute = AuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -80,6 +86,7 @@ const ObrasIdRegistrosNovoRoute = ObrasIdRegistrosNovoRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auditoria': typeof AuditoriaRoute
   '/dashboard': typeof DashboardRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/usuarios': typeof UsuariosRoute
@@ -93,6 +100,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auditoria': typeof AuditoriaRoute
   '/dashboard': typeof DashboardRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/usuarios': typeof UsuariosRoute
@@ -106,6 +114,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auditoria': typeof AuditoriaRoute
   '/dashboard': typeof DashboardRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
   '/usuarios': typeof UsuariosRoute
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auditoria'
     | '/dashboard'
     | '/recuperar-senha'
     | '/usuarios'
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auditoria'
     | '/dashboard'
     | '/recuperar-senha'
     | '/usuarios'
@@ -146,6 +157,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/auditoria'
     | '/dashboard'
     | '/recuperar-senha'
     | '/usuarios'
@@ -160,6 +172,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuditoriaRoute: typeof AuditoriaRoute
   DashboardRoute: typeof DashboardRoute
   RecuperarSenhaRoute: typeof RecuperarSenhaRoute
   UsuariosRoute: typeof UsuariosRoute
@@ -175,6 +188,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auditoria': {
+      id: '/auditoria'
+      path: '/auditoria'
+      fullPath: '/auditoria'
+      preLoaderRoute: typeof AuditoriaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -269,6 +289,7 @@ const ObrasIdRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuditoriaRoute: AuditoriaRoute,
   DashboardRoute: DashboardRoute,
   RecuperarSenhaRoute: RecuperarSenhaRoute,
   UsuariosRoute: UsuariosRoute,

@@ -7,8 +7,12 @@
 
 ## STATUS ATUAL
 
-- **Fase em andamento:** Frontend conectado à API real de ponta a ponta (login, obras, registros, assinaturas, termo de conclusão, usuários — tudo via HTTP autenticado, `mock-data.ts` removido). Próximo passo: PDF exposto por endpoint HTTP, log de auditoria (Fase 8), depois deploy (Fase 10).
+- **Fase em andamento:** Log de auditoria (RF09) e carimbo de tempo RFC 3161 implementados e testados com serviço externo real. Frontend conectado à API de ponta a ponta. Falta: endpoint de PDF, e depois deploy (Fase 10). Item pendente conhecido: capturar IP de forma segura atrás de reverse proxy — deixado propositalmente para a hora do deploy (ver nota abaixo).
 - **Última atualização:** 2026-08-15
+- **Log de auditoria (RF09) e carimbo de tempo RFC 3161 concluídos e testados contra serviços reais:**
+  - Toda ação relevante (login/falha de login, criar usuário, criar obra, assinar obra/registro/termo, ativar obra, finalizar obra, criar registro, adicionar imagem) grava uma linha em `logs_auditoria` — append-only, com o mesmo trigger de imutabilidade das assinaturas (testei tentando `UPDATE` direto via SQL: bloqueado). Tela `Auditoria` no frontend (só Admin), lista tudo com usuário/ação/entidade/IP/data-hora.
+  - Cada assinatura (Obra/Registro/Termo) agora também tenta obter um **carimbo de tempo RFC 3161 de uma autoridade externa real** (`http://timestamp.digicert.com`, configurável em `Tsa:Url`) via BouncyCastle (`Org.BouncyCastle.Tsp`) — testado ao vivo: a DigiCert respondeu em ~1,5s com um token assinado de ~8000 caracteres, validado e persistido (`TsaToken`/`TsaDataHora`/`TsaAutoridade` nas 3 tabelas de assinatura). **É best-effort por design**: testei derrubando a TSA (URL inválida) e a assinatura continuou funcionando normalmente, só sem o carimbo — nunca bloqueia o fluxo. O frontend mostra um selo "Carimbo de tempo verificado (autoridade)" quando presente.
+  - Isso fecha os itens 2 e 3 que ficaram pendentes na conversa sobre validade da assinatura; o item 1 (X-Forwarded-For confiável) continua propositalmente para a Fase 10, porque só faz sentido configurar isso quando o Nginx do deploy existir de verdade.
 - **Docker/WSL não é bloqueio** — Postgres local na porta **5433** (5432 já em uso por outro projeto nesta máquina), MinIO nas portas padrão. `docker compose up -d` sobe os dois.
 - **Teste de ponta a ponta via navegador (Playwright) realizado com sucesso, cobrindo o fluxo inteiro do sistema real** (não mock): login do Admin de bootstrap → Admin cadastra Engenheiro e Proprietário pela UI → Admin cria Obra pela UI → Engenheiro loga com a senha provisória e assina a abertura → Proprietário loga e assina (obra vira `Ativa`) → Engenheiro cria Registro de Visita → upload de foto real (MinIO) → Engenheiro assina o registro → Proprietário assina (registro vira `Assinado`) → Engenheiro emite Termo de Conclusão → ambos assinam → Obra vira `Finalizada`. **Zero erros de console/HTTP em todo o fluxo.** A galeria de fotos carrega via URL presignada do MinIO (`GET /api/registros/{id}/imagens/{id}/url`, endpoint novo). RBAC visual confirmado: cada perfil só vê/assina o que pode.
 - **Arquitetura do frontend para a API:** `src/lib/api/` (client.ts com fetch+JWT+tratamento de erro, types.ts espelhando os DTOs do backend, um módulo por recurso: auth/usuarios/obras/registros/termos) + `src/lib/auth-context.tsx` (substituiu o antigo `perfil-context.tsx` mock — `AuthProvider`/`useAuth`/`useRequireAuth`, sessão persistida em `localStorage`). O antigo `PerfilSwitcher` ("Visualizando como") foi removido — login real substitui a troca de perfil por demonstração.
@@ -19,7 +23,7 @@
   3. `AssinarTermoUseCase` devolvia `nomeUsuario` vazio — corrigido.
   4. Endpoint `GET /api/obras/{id}/termo-conclusao` retorna `204 No Content` quando não há termo ainda; o cliente HTTP do frontend tratava 204 como `undefined`, o que o React Query rejeita — corrigido para tratar 204 como `null`.
   5. Faltavam endpoints inteiros que o frontend real precisava e o backend "isolado" não previa: `GET /api/obras/{id}/termo-conclusao` (consultar termo) e `GET /api/registros/{id}/imagens/{id}/url` (URL presignada da foto) — ambos adicionados com seus use cases.
-- **Próximo passo imediato:** expor `GET /api/obras/{id}/pdf` e `GET /api/registros/{id}/pdf` (o `QuestPdfService` já existe, falta o endpoint) e implementar o log de auditoria (Fase 8).
+- **Próximo passo imediato:** expor `GET /api/obras/{id}/pdf` e `GET /api/registros/{id}/pdf` (o `QuestPdfService` já existe, falta o endpoint) e o checklist de segurança da Fase 8 (HTTPS, secrets fora do código, rate limiting). Depois disso, o núcleo funcional do sistema está praticamente fechado — falta só deploy (Fase 10) e as integrações de IA (Fase 9, que são um extra, não bloqueiam nada).
 - **Como rodar tudo agora:** `cd backend && docker compose up -d && dotnet run --project src/CadernetaObras.Api` (backend em `http://localhost:5282`) e, na raiz do projeto, `bun run dev` (frontend em `http://localhost:8080`). Login de bootstrap e demais detalhes em `backend/README.md`.
 - **Decisões já tomadas (não reabrir sem motivo forte):**
   - Banco de dados: migrar de SQL Server (rascunho original) para **PostgreSQL**, **self-hosted na VPS própria** (sem Supabase).
@@ -269,7 +273,7 @@ Essa camada só faz sentido **depois** que o núcleo (obras, registros, assinatu
 - [x] Registro de `usuario_id`, `papel`, IP, user-agent, timestamp do servidor por assinatura — capturados 100% no backend via `ICurrentUserService`, nunca enviados pelo cliente
 - [x] Bloqueio de edição/exclusão após dupla assinatura confirmada (RF06, RNF04) — validado na Application layer (`EntidadeImutavelException`) e reforçado por trigger no Postgres (`scripts/immutability-triggers.sql`)
 - [x] Testes unitários cobrindo o motor de assinatura (primeira assinatura, dupla assinatura ativa a obra, usuário não atribuído, assinatura duplicada, entidade já imutável) — `AssinarObraUseCaseTests`, 12/12 passando
-- [ ] (Opcional/avançado) Integração com Timestamp Authority (RFC 3161) para reforçar não-repúdio
+- [x] (Opcional/avançado) Integração com Timestamp Authority (RFC 3161) para reforçar não-repúdio — `Rfc3161TimestampService` (BouncyCastle) contra `timestamp.digicert.com`, best-effort (nunca bloqueia a assinatura se a TSA cair), testado ao vivo com sucesso e também testado o caminho de falha
 - [x] Testado contra um Postgres real: dupla assinatura de Obra, Registro de Visita e Termo de Conclusão confirmada de ponta a ponta, incluindo `UPDATE`/`DELETE` direto via SQL sendo barrado pelo trigger em todas as tabelas assináveis
 
 ### Fase 7 — Geração de PDF
@@ -279,9 +283,9 @@ Essa camada só faz sentido **depois** que o núcleo (obras, registros, assinatu
 - [ ] Armazenamento do PDF gerado no MinIO (documento oficial imutável — RF05)
 
 ### Fase 8 — Auditoria e segurança
-- [ ] Log de auditoria (data, hora, usuário, ação) — RF09
-- [ ] Revisão das autorizações por perfil na Application layer + triggers de imutabilidade
-- [ ] Checklist de segurança (HTTPS, variáveis de ambiente/secrets fora do código, rate limiting no login)
+- [x] Log de auditoria (data, hora, usuário, ação) — RF09 — entidade `LogAuditoria` append-only (trigger de imutabilidade igual às assinaturas), `IAuditLogger` chamado em login/falha de login/criar usuário/criar obra/assinar obra/ativar obra/criar registro/adicionar imagem/assinar registro/criar termo/assinar termo/finalizar obra, endpoint `GET /api/auditoria` (Admin) e tela `Auditoria` no frontend
+- [x] Revisão das autorizações por perfil na Application layer + triggers de imutabilidade — já coberto pelos testes de ponta a ponta anteriores
+- [ ] Checklist de segurança (HTTPS, variáveis de ambiente/secrets fora do código, rate limiting no login) — falta ainda
 
 ### Fase 9 — Integrações de IA (Webhooks, MCP, Agente Interno)
 - [ ] Implementar `IEventDispatcher` e domain events (`ObraCriada`, `ObraAtivada`, `RegistroVisitaAssinado`, `CadernetaFinalizada`)

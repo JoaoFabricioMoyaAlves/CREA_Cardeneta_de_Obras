@@ -1,5 +1,6 @@
 using CadernetaObras.Application.Interfaces;
 using CadernetaObras.Domain.Interfaces;
+using CadernetaObras.Infrastructure.Auditoria;
 using CadernetaObras.Infrastructure.Auth;
 using CadernetaObras.Infrastructure.Persistence;
 using CadernetaObras.Infrastructure.Persistence.Repositories;
@@ -20,18 +21,22 @@ public static class DependencyInjection
 
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.Configure<MinioOptions>(configuration.GetSection(MinioOptions.SectionName));
+        services.Configure<TsaOptions>(configuration.GetSection(TsaOptions.SectionName));
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUsuarioRepository, UsuarioRepository>();
         services.AddScoped<IObraRepository, ObraRepository>();
         services.AddScoped<IRelatoVisitaRepository, RelatoVisitaRepository>();
         services.AddScoped<ITermoConclusaoRepository, TermoConclusaoRepository>();
+        services.AddScoped<ILogAuditoriaRepository, LogAuditoriaRepository>();
 
         services.AddScoped<IPasswordHasher, Argon2PasswordHasher>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IHashService, Sha256HashService>();
+        services.AddScoped<IAuditLogger, AuditLogger>();
         services.AddSingleton<IStorageService, MinioStorageService>();
         services.AddSingleton<IPdfService, QuestPdfService>();
+        services.AddHttpClient<ITimestampAuthorityService, Rfc3161TimestampService>();
 
         return services;
     }

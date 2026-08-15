@@ -14,5 +14,9 @@ public class AssinaturaRelato
     public string Ip { get; set; } = string.Empty;
     public string UserAgent { get; set; } = string.Empty;
 
+    public string? TsaToken { get; set; }
+    public DateTime? TsaDataHora { get; set; }
+    public string? TsaAutoridade { get; set; }
+
     public RelatoVisita? RelatoVisita { get; set; }
 }

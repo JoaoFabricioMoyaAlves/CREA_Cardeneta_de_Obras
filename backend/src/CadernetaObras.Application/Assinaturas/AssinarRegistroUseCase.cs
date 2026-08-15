@@ -17,10 +17,13 @@ public class AssinarRegistroUseCase
     private readonly IUnitOfWork _unitOfWork;
     private readonly IHashService _hashService;
     private readonly ICurrentUserService _currentUser;
+    private readonly IAuditLogger _auditLogger;
+    private readonly ITimestampAuthorityService _tsa;
 
     public AssinarRegistroUseCase(
         IRelatoVisitaRepository registros, IObraRepository obras, IUsuarioRepository usuarios,
-        IUnitOfWork unitOfWork, IHashService hashService, ICurrentUserService currentUser)
+        IUnitOfWork unitOfWork, IHashService hashService, ICurrentUserService currentUser,
+        IAuditLogger auditLogger, ITimestampAuthorityService tsa)
     {
         _registros = registros;
         _obras = obras;
@@ -28,6 +31,8 @@ public class AssinarRegistroUseCase
         _unitOfWork = unitOfWork;
         _hashService = hashService;
         _currentUser = currentUser;
+        _auditLogger = auditLogger;
+        _tsa = tsa;
     }
 
     public async Task<RegistroResponse> ExecutarAsync(int registroId, CancellationToken ct = default)
@@ -47,6 +52,7 @@ public class AssinarRegistroUseCase
             throw new AssinaturaDuplicadaException();
 
         var hash = _hashService.GerarHashSha256(MontarConteudoCanonico(registro));
+        var carimbo = await _tsa.ObterCarimboAsync(Convert.FromHexString(hash), ct);
 
         registro.Assinaturas.Add(new AssinaturaRelato
         {
@@ -57,7 +63,12 @@ public class AssinarRegistroUseCase
             CodHash = hash,
             Ip = _currentUser.Ip,
             UserAgent = _currentUser.UserAgent,
+            TsaToken = carimbo?.TokenBase64,
+            TsaDataHora = carimbo?.DataHoraTsa,
+            TsaAutoridade = carimbo?.Autoridade,
         });
+
+        _auditLogger.Registrar("RegistroVisitaAssinado", _currentUser.UsuarioId, "RelatoVisita", registro.Id.ToString(), $"Papel: {papel}");
 
         var assinouEngenheiro = registro.Assinaturas.Any(a => a.Papel == PapelAssinatura.Engenheiro);
         var assinouProprietario = registro.Assinaturas.Any(a => a.Papel == PapelAssinatura.Proprietario);

@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<Imagem> Imagens => Set<Imagem>();
     public DbSet<TermoConclusao> TermosConclusao => Set<TermoConclusao>();
     public DbSet<AssinaturaTermoConclusao> AssinaturasTermoConclusao => Set<AssinaturaTermoConclusao>();
+    public DbSet<LogAuditoria> LogsAuditoria => Set<LogAuditoria>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

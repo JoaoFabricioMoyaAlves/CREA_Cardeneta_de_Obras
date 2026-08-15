@@ -75,6 +75,8 @@ export function RegistroDetalhe({ registro, obra }: { registro: RegistroResponse
       nome: obra.nomeProfissional,
       assinadoEm: assinaturaEngenheiro?.data ?? null,
       hash: assinaturaEngenheiro?.hash ?? null,
+      carimboTempoVerificado: assinaturaEngenheiro?.carimboTempoVerificado,
+      carimboTempoAutoridade: assinaturaEngenheiro?.carimboTempoAutoridade,
       podeAssinar:
         registro.status === "PendenteAssinatura" &&
         !assinaturaEngenheiro &&
@@ -86,6 +88,8 @@ export function RegistroDetalhe({ registro, obra }: { registro: RegistroResponse
       nome: obra.nomeProprietario,
       assinadoEm: assinaturaProprietario?.data ?? null,
       hash: assinaturaProprietario?.hash ?? null,
+      carimboTempoVerificado: assinaturaProprietario?.carimboTempoVerificado,
+      carimboTempoAutoridade: assinaturaProprietario?.carimboTempoAutoridade,
       podeAssinar:
         registro.status === "PendenteAssinatura" &&
         !assinaturaProprietario &&

@@ -12,14 +12,17 @@ public class CriarObraUseCase
     private readonly IUsuarioRepository _usuarios;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUser;
+    private readonly IAuditLogger _auditLogger;
 
     public CriarObraUseCase(
-        IObraRepository obras, IUsuarioRepository usuarios, IUnitOfWork unitOfWork, ICurrentUserService currentUser)
+        IObraRepository obras, IUsuarioRepository usuarios, IUnitOfWork unitOfWork,
+        ICurrentUserService currentUser, IAuditLogger auditLogger)
     {
         _obras = obras;
         _usuarios = usuarios;
         _unitOfWork = unitOfWork;
         _currentUser = currentUser;
+        _auditLogger = auditLogger;
     }
 
     public async Task<ObraResponse> ExecutarAsync(CriarObraRequest request, CancellationToken ct = default)
@@ -73,6 +76,7 @@ public class CriarObraUseCase
         await _unitOfWork.SalvarAsync(ct); // gera obra.Id
 
         obra.NumeroCaderneta = $"CAD-{request.DataReciboAbertura.Year}-{obra.Id:D4}";
+        _auditLogger.Registrar("ObraCriada", _currentUser.UsuarioId, "Obra", obra.Id.ToString(), obra.NumeroCaderneta);
         await _unitOfWork.SalvarAsync(ct);
 
         return ObraMapper.ToResponse(obra, profissional, proprietario);

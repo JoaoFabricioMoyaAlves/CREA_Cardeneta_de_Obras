@@ -1,10 +1,12 @@
 import { PageContainer } from "@/components/layout/PageContainer";
 import { UsuarioForm } from "@/features/usuarios/components/UsuarioForm";
-import { usePerfil } from "@/lib/perfil-context";
+import { useRequireAuth } from "@/lib/auth-context";
 import { AcessoRestrito } from "./AcessoRestrito";
 
 export function NovoUsuarioPage() {
-  const { perfil } = usePerfil();
+  const { perfil, carregando } = useRequireAuth();
+
+  if (carregando || !perfil) return null;
 
   if (perfil !== "administrador") {
     return (

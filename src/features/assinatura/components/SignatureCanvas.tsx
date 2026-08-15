@@ -8,20 +8,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Eraser } from "lucide-react";
+import { Eraser, Loader2 } from "lucide-react";
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   papel: string;
   nome: string;
-  onConfirmar: () => void;
+  onConfirmar: () => Promise<void>;
 };
 
 export function SignatureCanvas({ open, onOpenChange, papel, nome, onConfirmar }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const desenhando = useRef(false);
   const [temTraco, setTemTraco] = useState(false);
+  const [enviando, setEnviando] = useState(false);
 
   function pos(e: React.PointerEvent<HTMLCanvasElement>) {
     const canvas = canvasRef.current!;
@@ -72,8 +73,8 @@ export function SignatureCanvas({ open, onOpenChange, papel, nome, onConfirmar }
         <DialogHeader>
           <DialogTitle>Assinatura do {papel}</DialogTitle>
           <DialogDescription>
-            {nome} — desenhe sua assinatura no quadro abaixo. Este é um ambiente de
-            demonstração visual.
+            {nome} — desenhe sua assinatura no quadro abaixo. O traço é só a representação
+            visual; o que dá validade é o hash gerado pelo servidor ao confirmar.
           </DialogDescription>
         </DialogHeader>
 
@@ -90,27 +91,37 @@ export function SignatureCanvas({ open, onOpenChange, papel, nome, onConfirmar }
           />
           <div className="mt-2 flex items-center justify-between px-1">
             <span className="text-xs text-muted-foreground">Assine acima da linha</span>
-            <Button variant="ghost" size="sm" onClick={limpar}>
+            <Button variant="ghost" size="sm" onClick={limpar} disabled={enviando}>
               <Eraser className="mr-1.5 size-4" /> Limpar
             </Button>
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" className="min-h-11" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            className="min-h-11"
+            disabled={enviando}
+            onClick={() => onOpenChange(false)}
+          >
             Cancelar
           </Button>
           <Button
             variant="assinar"
             className="min-h-11"
-            disabled={!temTraco}
-            onClick={() => {
-              onConfirmar();
-              limpar();
-              onOpenChange(false);
+            disabled={!temTraco || enviando}
+            onClick={async () => {
+              setEnviando(true);
+              try {
+                await onConfirmar();
+                limpar();
+              } finally {
+                setEnviando(false);
+              }
             }}
           >
-            Confirmar assinatura
+            {enviando && <Loader2 className="mr-2 size-4 animate-spin" />}
+            {enviando ? "Confirmando…" : "Confirmar assinatura"}
           </Button>
         </DialogFooter>
       </DialogContent>

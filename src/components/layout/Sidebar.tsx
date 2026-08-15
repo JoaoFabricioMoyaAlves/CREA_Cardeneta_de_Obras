@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { FolderOpen, LayoutDashboard, PlusCircle, Users } from "lucide-react";
-import { usePerfil } from "@/lib/perfil-context";
+import { useAuth } from "@/lib/auth-context";
 
 export function Sidebar() {
-  const { perfil } = usePerfil();
+  const { perfil } = useAuth();
 
   const itens = [
     { to: "/dashboard", label: "Cadernetas", icon: LayoutDashboard },

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -8,13 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { ATIVIDADES_TECNICAS, TIPOS_EDIFICACAO } from "@/lib/constants";
-import { usuarios } from "@/lib/mock-data";
-import { BlocoAssinaturas } from "@/features/assinatura/components/AssinaturaStatusCard";
-import { AlertCircle, Ruler } from "lucide-react";
+import { listarUsuarios } from "@/lib/api/usuarios";
+import { criarObra } from "@/lib/api/obras";
+import { ApiError } from "@/lib/api/client";
+import { AlertCircle, Loader2, Ruler } from "lucide-react";
 import { toast } from "sonner";
-
-const engenheiros = usuarios.filter((u) => u.perfil === "engenheiro");
-const proprietarios = usuarios.filter((u) => u.perfil === "proprietario");
 
 export function ObraForm() {
   const navigate = useNavigate();
@@ -22,6 +21,7 @@ export function ObraForm() {
   const [engenheiro, setEngenheiro] = useState("");
   const [tipo, setTipo] = useState("");
   const [local, setLocal] = useState("");
+  const [cidade, setCidade] = useState("");
   const [rt, setRt] = useState("");
   const [valorObra, setValorObra] = useState("");
   const [empresa, setEmpresa] = useState("");
@@ -35,27 +35,56 @@ export function ObraForm() {
   });
   const [erro, setErro] = useState<string | null>(null);
 
+  const { data: usuarios } = useQuery({ queryKey: ["usuarios"], queryFn: listarUsuarios });
+  const engenheiros = usuarios?.filter((u) => u.perfil === "Engenheiro") ?? [];
+  const proprietarios = usuarios?.filter((u) => u.perfil === "Proprietario") ?? [];
+
   const total = Object.values(areas).reduce((s, v) => s + (parseFloat(v) || 0), 0);
 
   function alternarAtividade(a: string) {
     setAtividades((prev) => (prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]));
   }
 
+  const mutation = useMutation({
+    mutationFn: criarObra,
+    onSuccess: (obra) => {
+      toast.success(`Caderneta ${obra.numeroCaderneta} criada. Aguardando assinatura do Engenheiro e do Proprietário.`);
+      navigate({ to: "/obras/$id", params: { id: String(obra.id) } });
+    },
+    onError: (err) => {
+      setErro(err instanceof ApiError ? err.message : "Não foi possível criar a caderneta.");
+    },
+  });
+
   function salvar(e: React.FormEvent) {
     e.preventDefault();
-    if (!proprietario || !engenheiro || !local.trim() || !rt.trim() || !tipo || !valorObra.trim()) {
-      setErro(
-        "Preencha proprietário, engenheiro, local da obra, número RT, tipo de edificação e valor da obra.",
-      );
+    if (!proprietario || !engenheiro || !local.trim() || !cidade.trim() || !rt.trim() || !tipo || !valorObra.trim() || !dataRecibo) {
+      setErro("Preencha proprietário, engenheiro, local, cidade, número RT, tipo de edificação, valor da obra e data do recibo.");
       return;
     }
     setErro(null);
-    toast.success("Caderneta criada (demonstração). Aguardando assinaturas.");
-    navigate({ to: "/dashboard" });
+    mutation.mutate({
+      proprietarioId: proprietario,
+      profissionalId: engenheiro,
+      localObra: local.trim(),
+      cidade: cidade.trim(),
+      numeroRt: rt.trim(),
+      areaConstruirM2: parseFloat(areas.construir) || 0,
+      areaAmpliarM2: parseFloat(areas.ampliar) || 0,
+      areaReformarM2: parseFloat(areas.reformar) || 0,
+      areaRegularizarM2: parseFloat(areas.regularizar) || 0,
+      tipoEdificacao: tipo,
+      tipoEdificacaoOutros: null,
+      ativTecnicaDirecao: atividades.includes("Direção"),
+      ativTecnicaExecucao: atividades.includes("Execução"),
+      ativTecnicaFiscalizacao: atividades.includes("Fiscalização"),
+      ativTecnicaProjeto: atividades.includes("Projeto"),
+      valorObra: parseFloat(valorObra) || 0,
+      dataReciboAbertura: dataRecibo,
+      nomeEmpresa: empresa.trim() || null,
+      cnpjEmpresa: null,
+    });
   }
-
-  const nomeEng = engenheiros.find((u) => u.id === engenheiro)?.nome ?? "A definir";
-  const nomeProp = proprietarios.find((u) => u.id === proprietario)?.nome ?? "A definir";
 
   return (
     <form onSubmit={salvar} className="space-y-6" noValidate>
@@ -72,7 +101,7 @@ export function ObraForm() {
                 <SelectContent>
                   {proprietarios.map((u) => (
                     <SelectItem key={u.id} value={u.id}>
-                      {u.nome} — {u.documento}
+                      {u.nome} — {u.cpf}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -87,7 +116,7 @@ export function ObraForm() {
                 <SelectContent>
                   {engenheiros.map((u) => (
                     <SelectItem key={u.id} value={u.id}>
-                      {u.nome} — {u.registroCrea}
+                      {u.nome} — {u.numeroRegistro}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -99,14 +128,24 @@ export function ObraForm() {
 
           <h2 className="text-lg font-semibold text-primary">Dados da obra</h2>
           <div className="grid gap-5 md:grid-cols-2">
-            <div className="space-y-2 md:col-span-2">
+            <div className="space-y-2">
               <Label htmlFor="local">Local da obra *</Label>
               <Input
                 id="local"
                 className="min-h-11"
-                placeholder="Rua, número, bairro, cidade"
+                placeholder="Rua, número, bairro"
                 value={local}
                 onChange={(e) => setLocal(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cidade">Cidade *</Label>
+              <Input
+                id="cidade"
+                className="min-h-11"
+                placeholder="Cidade / UF"
+                value={cidade}
+                onChange={(e) => setCidade(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -149,17 +188,17 @@ export function ObraForm() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="empresa">Empresa / CNPJ (opcional)</Label>
+              <Label htmlFor="empresa">Empresa (opcional)</Label>
               <Input
                 id="empresa"
                 className="min-h-11"
-                placeholder="Razão social — 00.000.000/0000-00"
+                placeholder="Razão social"
                 value={empresa}
                 onChange={(e) => setEmpresa(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="recibo">Data do recibo de abertura</Label>
+              <Label htmlFor="recibo">Data do recibo de abertura *</Label>
               <Input
                 id="recibo"
                 type="date"
@@ -226,16 +265,14 @@ export function ObraForm() {
         </CardContent>
       </Card>
 
-      <Card className="border-border">
-        <CardContent className="p-5 md:p-6">
-          <BlocoAssinaturas
-            assinaturas={[
-              { papel: "Engenheiro", nome: nomeEng, assinadoEm: null, hash: null },
-              { papel: "Proprietário", nome: nomeProp, assinadoEm: null, hash: null },
-            ]}
-          />
-        </CardContent>
-      </Card>
+      <div className="flex items-start gap-2 rounded-md border border-border bg-secondary/50 p-3">
+        <AlertCircle className="mt-0.5 size-4 shrink-0 text-primary" />
+        <p className="text-xs text-muted-foreground">
+          A caderneta nasce como <strong>Pendente assinatura</strong>. O Engenheiro e o
+          Proprietário assinam depois, cada um logado com sua própria conta, na tela de
+          detalhe da obra.
+        </p>
+      </div>
 
       {erro && (
         <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3">
@@ -253,8 +290,9 @@ export function ObraForm() {
         >
           Cancelar
         </Button>
-        <Button type="submit" className="min-h-11 px-6">
-          Criar caderneta
+        <Button type="submit" className="min-h-11 px-6" disabled={mutation.isPending}>
+          {mutation.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+          {mutation.isPending ? "Criando…" : "Criar caderneta"}
         </Button>
       </div>
     </form>

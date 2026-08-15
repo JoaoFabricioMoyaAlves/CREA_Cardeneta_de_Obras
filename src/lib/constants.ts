@@ -10,12 +10,6 @@ export const CORES = {
 
 export type Perfil = "administrador" | "engenheiro" | "proprietario";
 
-export const PERFIS: { value: Perfil; label: string }[] = [
-  { value: "administrador", label: "Administrador (CREA)" },
-  { value: "engenheiro", label: "Engenheiro/Arquiteto" },
-  { value: "proprietario", label: "Proprietário" },
-];
-
 // Tipo de usuário exibido no CADASTRO (mais granular que o Perfil de acesso/RBAC
 // acima). Engenheiro e Arquiteto têm as mesmas permissões no sistema — ambos
 // mapeiam para o perfil "engenheiro" — mas são escolhidos como opções
@@ -80,5 +74,3 @@ export const TIPOS_EDIFICACAO = [
   "Industrial",
   "Institucional",
 ] as const;
-
-export type StatusObra = "Pendente assinatura" | "Ativa" | "Finalizada";

@@ -7,16 +7,20 @@
 
 ## STATUS ATUAL
 
-- **Fase em andamento:** Backend testado de ponta a ponta contra Postgres real (Docker/WSL desbloqueado pelo usuário) → próximo passo é conectar o frontend React à API de verdade.
+- **Fase em andamento:** Frontend conectado à API real de ponta a ponta (login, obras, registros, assinaturas, termo de conclusão, usuários — tudo via HTTP autenticado, `mock-data.ts` removido). Próximo passo: PDF exposto por endpoint HTTP, log de auditoria (Fase 8), depois deploy (Fase 10).
 - **Última atualização:** 2026-08-15
-- **Docker/WSL não é mais bloqueio** — usuário instalou o WSL e o Docker Desktop volta a funcionar. `docker compose up` funcionando (nota: a porta do Postgres local foi trocada de 5432 para **5433** no host, porque a 5432 já estava em uso por outro projeto nesta máquina — ver `docker-compose.yml`/`appsettings.Development.json`).
-- **Teste de ponta a ponta realizado com sucesso** contra um Postgres real: criação de Administrador via seed de bootstrap → login JWT → Admin cria Engenheiro e Proprietário → Admin cria Obra → dupla assinatura ativa a Obra (hash real gerado por assinatura) → tentativa de assinar de novo é rejeitada (409) → `UPDATE`/`DELETE` direto via SQL na obra assinada é bloqueado pelo trigger do Postgres → Engenheiro cria Registro de Visita → dupla assinatura marca como Assinado e imutável (`UPDATE` direto também bloqueado) → Termo de Conclusão criado e assinado por ambos → Obra passa a `Finalizada`. **A assinatura digital agora tem validade real** (hash SHA-256 + IP + user-agent + timestamp do servidor, tudo verificado funcionando).
-- **3 bugs reais encontrados e corrigidos durante esse teste** (não apareceriam sem rodar contra um banco de verdade):
-  1. `scripts/immutability-triggers.sql` referenciava colunas em `lowercase` (`OLD.status`, `OLD.id`), mas o EF Core gera colunas em `PascalCase` (`"Status"`, `"Id"`) por padrão — Postgres dobra identificador sem aspas para minúsculo, então o trigger nunca achava a coluna. Corrigido para usar `OLD."Status"`, `OLD."Id"` etc. em todo o script.
-  2. `CriarObraUseCase` usava um placeholder fixo `"PENDENTE"` para `NumeroCaderneta` antes de descobrir o Id gerado — se a segunda gravação falhasse, esse valor ficava órfão no banco e colidia com a constraint única na tentativa seguinte. Trocado para um placeholder único (`$"PENDENTE-{Guid.NewGuid()}"`).
-  3. `AssinarTermoUseCase` devolvia `nomeUsuario` vazio na resposta (só os outros dois motores de assinatura buscavam o nome do usuário) — corrigido para buscar `profissional`/`proprietario` igual aos demais.
-- **Próximo passo imediato:** conectar o frontend React à API real — trocar `mock-data.ts` por chamadas HTTP autenticadas (JWT), começando pela tela de Login. Depois: expor os endpoints de PDF (o serviço já existe, só falta o `GET /api/obras/{id}/pdf` e `GET /api/registros/{id}/pdf`) e o log de auditoria (Fase 8).
-- **Como rodar o backend agora** (infra já provisionada nesta máquina): `cd backend && docker compose up -d` (containers já criados, só sobem) e `dotnet run --project src/CadernetaObras.Api` — login de bootstrap e demais detalhes em `backend/README.md`.
+- **Docker/WSL não é bloqueio** — Postgres local na porta **5433** (5432 já em uso por outro projeto nesta máquina), MinIO nas portas padrão. `docker compose up -d` sobe os dois.
+- **Teste de ponta a ponta via navegador (Playwright) realizado com sucesso, cobrindo o fluxo inteiro do sistema real** (não mock): login do Admin de bootstrap → Admin cadastra Engenheiro e Proprietário pela UI → Admin cria Obra pela UI → Engenheiro loga com a senha provisória e assina a abertura → Proprietário loga e assina (obra vira `Ativa`) → Engenheiro cria Registro de Visita → upload de foto real (MinIO) → Engenheiro assina o registro → Proprietário assina (registro vira `Assinado`) → Engenheiro emite Termo de Conclusão → ambos assinam → Obra vira `Finalizada`. **Zero erros de console/HTTP em todo o fluxo.** A galeria de fotos carrega via URL presignada do MinIO (`GET /api/registros/{id}/imagens/{id}/url`, endpoint novo). RBAC visual confirmado: cada perfil só vê/assina o que pode.
+- **Arquitetura do frontend para a API:** `src/lib/api/` (client.ts com fetch+JWT+tratamento de erro, types.ts espelhando os DTOs do backend, um módulo por recurso: auth/usuarios/obras/registros/termos) + `src/lib/auth-context.tsx` (substituiu o antigo `perfil-context.tsx` mock — `AuthProvider`/`useAuth`/`useRequireAuth`, sessão persistida em `localStorage`). O antigo `PerfilSwitcher` ("Visualizando como") foi removido — login real substitui a troca de perfil por demonstração.
+- **Mudança de UX importante em relação ao mock:** os formulários de Criar Obra, Novo Registro e Finalizar Caderneta **não mostram mais o bloco de assinatura na hora de criar** — no backend real, cada assinatura exige a pessoa logada como si mesma, então a dupla assinatura só acontece depois, na tela de detalhe, e cada usuário só vê o botão "Assinar" no próprio slot (nunca no do outro papel).
+- **Bugs reais encontrados e corrigidos** (a maioria só aparece rodando contra banco/API de verdade, não em typecheck):
+  1. Triggers do Postgres referenciavam colunas em lowercase, mas o EF Core gera `PascalCase` — corrigido para `OLD."Status"` etc.
+  2. `CriarObraUseCase` usava um placeholder fixo `"PENDENTE"` que colidia com a constraint única em retries — trocado por GUID.
+  3. `AssinarTermoUseCase` devolvia `nomeUsuario` vazio — corrigido.
+  4. Endpoint `GET /api/obras/{id}/termo-conclusao` retorna `204 No Content` quando não há termo ainda; o cliente HTTP do frontend tratava 204 como `undefined`, o que o React Query rejeita — corrigido para tratar 204 como `null`.
+  5. Faltavam endpoints inteiros que o frontend real precisava e o backend "isolado" não previa: `GET /api/obras/{id}/termo-conclusao` (consultar termo) e `GET /api/registros/{id}/imagens/{id}/url` (URL presignada da foto) — ambos adicionados com seus use cases.
+- **Próximo passo imediato:** expor `GET /api/obras/{id}/pdf` e `GET /api/registros/{id}/pdf` (o `QuestPdfService` já existe, falta o endpoint) e implementar o log de auditoria (Fase 8).
+- **Como rodar tudo agora:** `cd backend && docker compose up -d && dotnet run --project src/CadernetaObras.Api` (backend em `http://localhost:5282`) e, na raiz do projeto, `bun run dev` (frontend em `http://localhost:8080`). Login de bootstrap e demais detalhes em `backend/README.md`.
 - **Decisões já tomadas (não reabrir sem motivo forte):**
   - Banco de dados: migrar de SQL Server (rascunho original) para **PostgreSQL**, **self-hosted na VPS própria** (sem Supabase).
   - Backend: **.NET (C#) com Clean Architecture** (Domain / Application / Infrastructure / API em camadas) — ver seção 3.6.
@@ -242,19 +246,19 @@ Essa camada só faz sentido **depois** que o núcleo (obras, registros, assinatu
 - [x] Autorização por perfil na API — cada use case da Application valida `ICurrentUserService.Perfil` (Admin / Engenheiro / Proprietário) antes de agir, em vez de só `[Authorize(Roles=...)]` genérico
 - [x] Cadastro de usuário via API (`POST /api/usuarios`, só Administrador) com os 4 tipos (Admin/Engenheiro/Arquiteto/Proprietário) e senha secreta de dev para novo Admin, espelhando o formulário do frontend
 - [x] Seed do primeiro Administrador via `Bootstrap:AdminCpf`/`AdminSenha` na configuração (resolve o problema de "quem cadastra o primeiro Admin")
-- [ ] Conectar tela de Login do frontend à API real (RF08) — ainda usa `mock-data.ts`
-- [ ] Middleware de proteção de rotas no frontend por perfil (menus e ações diferentes por perfil) — já existe visualmente com `PerfilProvider`, falta trocar a fonte de verdade do mock para o JWT real
-- [x] Testar o fluxo fim a fim — login de bootstrap, criação de Engenheiro/Proprietário e emissão de JWT confirmados contra Postgres real
+- [x] Conectar tela de Login do frontend à API real (RF08) — `src/lib/api/auth.ts` + `src/lib/auth-context.tsx`
+- [x] Proteção de rotas no frontend por perfil — `useRequireAuth()` (redireciona pra `/` sem sessão) em toda página protegida; `AcessoRestrito` continua tratando os casos de perfil errado, agora usando a mensagem de erro real da API
+- [x] Testar o fluxo fim a fim — login de bootstrap, criação de Engenheiro/Proprietário e emissão de JWT confirmados contra Postgres real, e depois todo o ciclo de vida da obra testado via navegador (Playwright)
 
 ### Fase 4 — CRUD de Obras/Cadernetas
 - [x] Administrador cria Caderneta (RF01) com cálculo automático de área total edificada, atribuindo Engenheiro + Proprietário responsáveis (RF02) — `POST /api/obras`, `CriarObraUseCase`
 - [x] Obra nasce em `PendenteAssinatura` — só vira `Ativa` após dupla assinatura (Engenheiro + Proprietário) — `AssinarObraUseCase`
 - [x] Listagem filtrada por perfil: Admin vê tudo, Engenheiro/Proprietário veem só as obras em que estão atribuídos — `GET /api/obras`, `ObraRepository.ListarVisiveisAsync`
-- [x] Testado contra um Postgres real: obra criada, área total calculada corretamente (216,5 m²), listagem filtrada por perfil confirmada
+- [x] Testado contra um Postgres real: obra criada, área total calculada corretamente (216,5 m²), listagem filtrada por perfil confirmada, e via navegador com o formulário real do frontend (`ObraForm.tsx` sem o bloco de assinatura na criação — dupla assinatura passou pra tela de detalhe)
 
 ### Fase 5 — Registros de Visita
 - [x] Engenheiro cria Relato de Visita com fases de serviço (RF03) — Admin e Proprietário não criam — `POST /api/registros`, valida `obra.Status == Ativa` e que o usuário é o profissional atribuído
-- [x] Upload de imagens vinculadas ao relato (só Engenheiro, no momento da criação, obra ainda `PendenteAssinatura` do registro) — `POST /api/registros/{id}/imagens` → MinIO
+- [x] Upload de imagens vinculadas ao relato (só Engenheiro, no momento da criação, obra ainda `PendenteAssinatura` do registro) — `POST /api/registros/{id}/imagens` → MinIO, testado via navegador com upload real e visualização por URL presignada (`ImagemPreview.tsx`)
 - [ ] Ocorrências vinculadas ao relato (RF04) — ainda não modelado como entidade separada; hoje cabe dentro de `DecisoesOrientacoes`, avaliar se precisa de tabela própria
 - [x] Proprietário só visualiza e assina, nunca cria/edita — reforçado tanto no use case quanto na ausência de endpoints de update/delete
 

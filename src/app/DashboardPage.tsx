@@ -1,27 +1,36 @@
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { ObraCard } from "@/features/obras/components/ObraCard";
-import { obrasVisiveis } from "@/lib/mock-data";
-import { usePerfil } from "@/lib/perfil-context";
-import { Plus } from "lucide-react";
+import { listarObras } from "@/lib/api/obras";
+import type { StatusObraApi } from "@/lib/api/types";
+import { useRequireAuth } from "@/lib/auth-context";
+import { Loader2, Plus } from "lucide-react";
 import { useState } from "react";
-import type { StatusObra } from "@/lib/constants";
 
-const filtros: ("Todas" | StatusObra)[] = [
-  "Todas",
-  "Pendente assinatura",
-  "Ativa",
-  "Finalizada",
+const filtros: { valor: "Todas" | StatusObraApi; label: string }[] = [
+  { valor: "Todas", label: "Todas" },
+  { valor: "PendenteAssinatura", label: "Pendente assinatura" },
+  { valor: "Ativa", label: "Ativa" },
+  { valor: "Finalizada", label: "Finalizada" },
 ];
 
 export function DashboardPage() {
-  const { perfil } = usePerfil();
+  const { perfil, carregando: carregandoAuth } = useRequireAuth();
   const [filtro, setFiltro] = useState<string>("Todas");
-  const lista = obrasVisiveis(perfil);
-  const filtradas = filtro === "Todas" ? lista : lista.filter((o) => o.status === filtro);
+
+  const { data: obras, isLoading, isError } = useQuery({
+    queryKey: ["obras"],
+    queryFn: listarObras,
+    enabled: Boolean(perfil),
+  });
+
+  if (carregandoAuth || !perfil) return null;
+
+  const filtradas = obras?.filter((o) => filtro === "Todas" || o.status === filtro) ?? [];
 
   const descricao =
     perfil === "administrador"
@@ -47,14 +56,24 @@ export function DashboardPage() {
       <Tabs value={filtro} onValueChange={setFiltro} className="mb-6">
         <TabsList className="h-auto flex-wrap">
           {filtros.map((f) => (
-            <TabsTrigger key={f} value={f} className="min-h-10 px-4">
-              {f}
+            <TabsTrigger key={f.valor} value={f.valor} className="min-h-10 px-4">
+              {f.label}
             </TabsTrigger>
           ))}
         </TabsList>
       </Tabs>
 
-      {filtradas.length === 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center p-10 text-muted-foreground">
+          <Loader2 className="mr-2 size-5 animate-spin" /> Carregando cadernetas…
+        </div>
+      ) : isError ? (
+        <Card className="border-destructive/30 bg-destructive/5">
+          <CardContent className="p-10 text-center text-sm text-destructive">
+            Não foi possível carregar as cadernetas. Verifique se a API está no ar.
+          </CardContent>
+        </Card>
+      ) : filtradas.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="p-10 text-center text-sm text-muted-foreground">
             Nenhuma caderneta encontrada para este filtro.

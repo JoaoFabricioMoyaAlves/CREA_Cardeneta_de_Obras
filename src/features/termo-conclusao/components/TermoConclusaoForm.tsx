@@ -1,22 +1,35 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { nomeUsuario, type Obra } from "@/lib/mock-data";
-import { BlocoAssinaturas } from "@/features/assinatura/components/AssinaturaStatusCard";
-import { AlertCircle, AlertTriangle } from "lucide-react";
+import { criarTermo } from "@/lib/api/termos";
+import { ApiError } from "@/lib/api/client";
+import type { ObraResponse } from "@/lib/api/types";
+import { AlertCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export function TermoConclusaoForm({ obra }: { obra: Obra }) {
+export function TermoConclusaoForm({ obra }: { obra: ObraResponse }) {
   const navigate = useNavigate();
   const [data, setData] = useState("");
   const [declaracao, setDeclaracao] = useState(
     "Declaro, para os devidos fins e sob responsabilidade técnica, que a obra foi concluída conforme o projeto aprovado e as normas técnicas aplicáveis.",
   );
   const [erro, setErro] = useState<string | null>(null);
+
+  const mutation = useMutation({
+    mutationFn: () => criarTermo(obra.id, data, declaracao.trim()),
+    onSuccess: () => {
+      toast.success("Termo de conclusão emitido. Aguardando assinatura do Engenheiro e do Proprietário.");
+      navigate({ to: "/obras/$id", params: { id: String(obra.id) } });
+    },
+    onError: (err) => {
+      setErro(err instanceof ApiError ? err.message : "Não foi possível emitir o termo de conclusão.");
+    },
+  });
 
   function salvar(e: React.FormEvent) {
     e.preventDefault();
@@ -25,8 +38,7 @@ export function TermoConclusaoForm({ obra }: { obra: Obra }) {
       return;
     }
     setErro(null);
-    toast.success("Termo de conclusão emitido (demonstração).");
-    navigate({ to: "/obras/$id", params: { id: obra.id } });
+    mutation.mutate();
   }
 
   return (
@@ -34,8 +46,9 @@ export function TermoConclusaoForm({ obra }: { obra: Obra }) {
       <div className="flex items-start gap-3 rounded-lg border border-warning/40 bg-warning-soft p-4">
         <AlertTriangle className="mt-0.5 size-5 shrink-0 text-warning" />
         <p className="text-sm text-foreground">
-          Após a dupla assinatura, a caderneta <strong>{obra.numero}</strong> será encerrada e
-          passará a ficar disponível somente para consulta.
+          Após a dupla assinatura do termo (na tela da caderneta), a caderneta{" "}
+          <strong>{obra.numeroCaderneta}</strong> será encerrada e passará a ficar disponível
+          somente para consulta.
         </p>
       </div>
 
@@ -63,28 +76,6 @@ export function TermoConclusaoForm({ obra }: { obra: Obra }) {
         </CardContent>
       </Card>
 
-      <Card className="border-border">
-        <CardContent className="p-5 md:p-6">
-          <BlocoAssinaturas
-            titulo="Assinaturas do termo de conclusão"
-            assinaturas={[
-              {
-                papel: "Engenheiro",
-                nome: nomeUsuario(obra.engenheiroId),
-                assinadoEm: null,
-                hash: null,
-              },
-              {
-                papel: "Proprietário",
-                nome: nomeUsuario(obra.proprietarioId),
-                assinadoEm: null,
-                hash: null,
-              },
-            ]}
-          />
-        </CardContent>
-      </Card>
-
       {erro && (
         <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3">
           <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
@@ -97,12 +88,13 @@ export function TermoConclusaoForm({ obra }: { obra: Obra }) {
           type="button"
           variant="outline"
           className="min-h-11"
-          onClick={() => navigate({ to: "/obras/$id", params: { id: obra.id } })}
+          onClick={() => navigate({ to: "/obras/$id", params: { id: String(obra.id) } })}
         >
           Cancelar
         </Button>
-        <Button type="submit" variant="destaque" className="min-h-11 px-6">
-          Emitir termo de conclusão
+        <Button type="submit" variant="destaque" className="min-h-11 px-6" disabled={mutation.isPending}>
+          {mutation.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+          {mutation.isPending ? "Emitindo…" : "Emitir termo de conclusão"}
         </Button>
       </div>
     </form>

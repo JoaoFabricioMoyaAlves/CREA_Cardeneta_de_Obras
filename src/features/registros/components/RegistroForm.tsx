@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,29 +10,37 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { FASES_SERVICO, POSICOES_OBRA } from "@/lib/constants";
-import { nomeUsuario, type Obra } from "@/lib/mock-data";
-import { BlocoAssinaturas } from "@/features/assinatura/components/AssinaturaStatusCard";
-import { AlertCircle, ImagePlus, X } from "lucide-react";
+import { criarRegistro } from "@/lib/api/registros";
+import { ApiError } from "@/lib/api/client";
+import type { ObraResponse } from "@/lib/api/types";
+import { AlertCircle, ImagePlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-const fotosMock = [
-  "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=600&q=70",
-  "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=600&q=70",
-  "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=70",
-];
-
-export function RegistroForm({ obra }: { obra: Obra }) {
+export function RegistroForm({ obra }: { obra: ObraResponse }) {
   const navigate = useNavigate();
   const [data, setData] = useState("");
   const [posicao, setPosicao] = useState("");
   const [decisoes, setDecisoes] = useState("");
   const [fases, setFases] = useState<string[]>([]);
-  const [fotos, setFotos] = useState<string[]>(fotosMock.slice(0, 2));
   const [erro, setErro] = useState<string | null>(null);
 
   function alternarFase(f: string) {
     setFases((prev) => (prev.includes(f) ? prev.filter((x) => x !== f) : [...prev, f]));
   }
+
+  const mutation = useMutation({
+    mutationFn: criarRegistro,
+    onSuccess: (registro) => {
+      toast.success("Registro de visita criado. Adicione as fotos e depois assine.");
+      navigate({
+        to: "/obras/$id/registros/$registroId",
+        params: { id: String(obra.id), registroId: String(registro.id) },
+      });
+    },
+    onError: (err) => {
+      setErro(err instanceof ApiError ? err.message : "Não foi possível salvar o registro.");
+    },
+  });
 
   function salvar(e: React.FormEvent) {
     e.preventDefault();
@@ -40,8 +49,13 @@ export function RegistroForm({ obra }: { obra: Obra }) {
       return;
     }
     setErro(null);
-    toast.success("Registro de visita salvo (demonstração).");
-    navigate({ to: "/obras/$id", params: { id: obra.id } });
+    mutation.mutate({
+      obraId: obra.id,
+      dataVisita: data,
+      posicaoObra: posicao,
+      decisoesOrientacoes: decisoes.trim(),
+      fasesSelecionadas: fases,
+    });
   }
 
   return (
@@ -103,62 +117,16 @@ export function RegistroForm({ obra }: { obra: Obra }) {
               ))}
             </div>
           </div>
-
-          <Separator />
-
-          <div className="space-y-3">
-            <h2 className="text-lg font-semibold text-primary">Fotos da visita</h2>
-            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {fotos.map((src, i) => (
-                <div key={i} className="relative overflow-hidden rounded-lg border border-border">
-                  <img
-                    src={src}
-                    alt={`Pré-visualização da foto ${i + 1}`}
-                    className="aspect-4/3 w-full object-cover"
-                  />
-                  <button
-                    type="button"
-                    aria-label="Remover foto"
-                    onClick={() => setFotos(fotos.filter((_, idx) => idx !== i))}
-                    className="absolute top-2 right-2 flex size-8 items-center justify-center rounded-full bg-primary/90 text-primary-foreground"
-                  >
-                    <X className="size-4" />
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => setFotos([...fotos, fotosMock[fotos.length % fotosMock.length]!])}
-                className="flex aspect-4/3 min-h-28 flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border text-muted-foreground hover:border-link hover:text-link"
-              >
-                <ImagePlus className="size-6" />
-                <span className="text-xs font-medium">Adicionar foto</span>
-              </button>
-            </div>
-          </div>
         </CardContent>
       </Card>
 
-      <Card className="border-border">
-        <CardContent className="p-5 md:p-6">
-          <BlocoAssinaturas
-            assinaturas={[
-              {
-                papel: "Engenheiro",
-                nome: nomeUsuario(obra.engenheiroId),
-                assinadoEm: null,
-                hash: null,
-              },
-              {
-                papel: "Proprietário",
-                nome: nomeUsuario(obra.proprietarioId),
-                assinadoEm: null,
-                hash: null,
-              },
-            ]}
-          />
-        </CardContent>
-      </Card>
+      <div className="flex items-start gap-2 rounded-md border border-border bg-secondary/50 p-3">
+        <ImagePlus className="mt-0.5 size-4 shrink-0 text-primary" />
+        <p className="text-xs text-muted-foreground">
+          As fotos da visita e a dupla assinatura (Engenheiro + Proprietário) são feitas na
+          tela do registro, depois de salvar.
+        </p>
+      </div>
 
       {erro && (
         <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3">
@@ -172,12 +140,13 @@ export function RegistroForm({ obra }: { obra: Obra }) {
           type="button"
           variant="outline"
           className="min-h-11"
-          onClick={() => navigate({ to: "/obras/$id", params: { id: obra.id } })}
+          onClick={() => navigate({ to: "/obras/$id", params: { id: String(obra.id) } })}
         >
           Cancelar
         </Button>
-        <Button type="submit" className="min-h-11 px-6">
-          Salvar registro
+        <Button type="submit" className="min-h-11 px-6" disabled={mutation.isPending}>
+          {mutation.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+          {mutation.isPending ? "Salvando…" : "Salvar registro"}
         </Button>
       </div>
     </form>

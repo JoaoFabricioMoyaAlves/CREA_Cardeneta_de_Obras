@@ -1,12 +1,16 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { HardHat, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { usePerfil } from "@/lib/perfil-context";
-import { PerfilSwitcher } from "./PerfilSwitcher";
+import { useAuth } from "@/lib/auth-context";
 
 export function Header() {
-  const { usuario } = usePerfil();
+  const { usuario, logout } = useAuth();
   const navigate = useNavigate();
+
+  function sair() {
+    logout();
+    navigate({ to: "/" });
+  }
 
   return (
     <header className="sticky top-0 z-30 bg-primary text-primary-foreground shadow-md">
@@ -25,23 +29,22 @@ export function Header() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-3">
-          <PerfilSwitcher />
-          <div className="hidden text-right md:block">
-            <p className="text-sm font-medium">{usuario.nome}</p>
-            <p className="text-xs text-white/70">
-              {usuario.registroCrea ?? usuario.documento}
-            </p>
+        {usuario && (
+          <div className="flex items-center gap-3">
+            <div className="hidden text-right md:block">
+              <p className="text-sm font-medium">{usuario.nome}</p>
+              <p className="text-xs text-white/70">{usuario.numeroRegistro ?? usuario.cpf}</p>
+            </div>
+            <Button
+              variant="ghost"
+              aria-label="Sair"
+              className="min-h-11 text-white hover:bg-white/15 hover:text-white"
+              onClick={sair}
+            >
+              <LogOut className="size-4" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            aria-label="Sair"
-            className="min-h-11 text-white hover:bg-white/15 hover:text-white"
-            onClick={() => navigate({ to: "/" })}
-          >
-            <LogOut className="size-4" />
-          </Button>
-        </div>
+        )}
       </div>
     </header>
   );

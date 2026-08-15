@@ -1,15 +1,24 @@
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { UsuarioCard } from "@/features/usuarios/components/UsuarioCard";
-import { usuarios } from "@/lib/mock-data";
-import { usePerfil } from "@/lib/perfil-context";
-import { UserPlus } from "lucide-react";
+import { listarUsuarios } from "@/lib/api/usuarios";
+import { useRequireAuth } from "@/lib/auth-context";
+import { Loader2, UserPlus } from "lucide-react";
 import { AcessoRestrito } from "./AcessoRestrito";
 
 export function UsuariosPage() {
-  const { perfil } = usePerfil();
+  const { perfil, carregando } = useRequireAuth();
+
+  const { data: usuarios, isLoading, isError } = useQuery({
+    queryKey: ["usuarios"],
+    queryFn: listarUsuarios,
+    enabled: perfil === "administrador",
+  });
+
+  if (carregando || !perfil) return null;
 
   if (perfil !== "administrador") {
     return (
@@ -29,7 +38,17 @@ export function UsuariosPage() {
         </Button>
       }
     >
-      {usuarios.length === 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center p-10 text-muted-foreground">
+          <Loader2 className="mr-2 size-5 animate-spin" /> Carregando usuários…
+        </div>
+      ) : isError ? (
+        <Card className="border-destructive/30 bg-destructive/5">
+          <CardContent className="p-10 text-center text-sm text-destructive">
+            Não foi possível carregar os usuários.
+          </CardContent>
+        </Card>
+      ) : !usuarios || usuarios.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="p-10 text-center text-sm text-muted-foreground">
             Nenhum usuário cadastrado.

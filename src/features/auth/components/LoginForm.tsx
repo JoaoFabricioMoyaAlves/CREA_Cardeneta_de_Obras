@@ -4,16 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/lib/auth-context";
+import { ApiError } from "@/lib/api/client";
 import { AlertCircle, HardHat, Loader2 } from "lucide-react";
 
 export function LoginForm() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
 
-  function entrar(e: React.FormEvent) {
+  async function entrar(e: React.FormEvent) {
     e.preventDefault();
     setErro(null);
     if (!cpf.trim() || !senha.trim()) {
@@ -21,14 +24,16 @@ export function LoginForm() {
       return;
     }
     setCarregando(true);
-    setTimeout(() => {
-      setCarregando(false);
-      if (senha.length < 4) {
-        setErro("Credenciais inválidas. Verifique seu CPF e senha.");
-        return;
-      }
+    try {
+      await login(cpf, senha);
       navigate({ to: "/dashboard" });
-    }, 900);
+    } catch (err) {
+      setErro(
+        err instanceof ApiError ? err.message : "Não foi possível entrar. Verifique sua conexão.",
+      );
+    } finally {
+      setCarregando(false);
+    }
   }
 
   return (

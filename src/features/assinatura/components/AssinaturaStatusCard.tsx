@@ -1,27 +1,37 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { BadgeCheck, Clock, PenLine } from "lucide-react";
+import { formatarDataHora } from "@/lib/format";
+import { BadgeCheck, Clock, Loader2, PenLine } from "lucide-react";
 import { SignatureCanvas } from "./SignatureCanvas";
-import { toast } from "sonner";
 
-export type AssinaturaStatus = {
-  papel: string;
+export type AssinaturaSlot = {
+  papel: "Engenheiro" | "Proprietario";
   nome: string;
   assinadoEm: string | null;
   hash: string | null;
+  // true só quando: é o usuário logado, é o papel dele nesta obra, e ele
+  // ainda não assinou — nunca é possível assinar pelo outro lado.
+  podeAssinar: boolean;
 };
 
-export function AssinaturaStatusCard({
+const LABEL_PAPEL: Record<AssinaturaSlot["papel"], string> = {
+  Engenheiro: "Engenheiro",
+  Proprietario: "Proprietário",
+};
+
+function AssinaturaStatusCard({
   papel,
   nome,
   assinadoEm,
   hash,
-  podeAssinar = true,
-}: AssinaturaStatus & { podeAssinar?: boolean }) {
+  podeAssinar,
+  assinando,
+  onAssinar,
+}: AssinaturaSlot & { assinando: boolean; onAssinar: () => Promise<void> }) {
   const [open, setOpen] = useState(false);
-  const [assinado, setAssinado] = useState(Boolean(assinadoEm));
-  const [quando, setQuando] = useState(assinadoEm);
+  const assinado = Boolean(assinadoEm);
+  const label = LABEL_PAPEL[papel];
 
   return (
     <Card
@@ -33,7 +43,7 @@ export function AssinaturaStatusCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-primary">{papel}</p>
+          <p className="text-sm font-semibold text-primary">{label}</p>
           <p className="text-sm text-foreground">{nome}</p>
         </div>
         {assinado ? (
@@ -45,7 +55,9 @@ export function AssinaturaStatusCard({
 
       {assinado ? (
         <div className="space-y-1">
-          <p className="text-xs font-medium text-primary">Assinado em {quando}</p>
+          <p className="text-xs font-medium text-primary">
+            Assinado em {formatarDataHora(assinadoEm!)}
+          </p>
           {hash && (
             <p className="font-mono text-xs text-muted-foreground">
               hash {hash.slice(0, 6)}…{hash.slice(-4)}
@@ -55,15 +67,21 @@ export function AssinaturaStatusCard({
       ) : (
         <>
           <p className="text-xs font-medium text-warning-foreground/80">
-            Aguardando assinatura
+            {podeAssinar ? "Aguardando sua assinatura" : "Aguardando assinatura"}
           </p>
           {podeAssinar && (
             <Button
               variant="assinar"
               className="min-h-11 w-full"
+              disabled={assinando}
               onClick={() => setOpen(true)}
             >
-              <PenLine className="mr-2 size-4" /> Assinar
+              {assinando ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : (
+                <PenLine className="mr-2 size-4" />
+              )}
+              {assinando ? "Assinando…" : "Assinar"}
             </Button>
           )}
         </>
@@ -72,12 +90,11 @@ export function AssinaturaStatusCard({
       <SignatureCanvas
         open={open}
         onOpenChange={setOpen}
-        papel={papel}
+        papel={label}
         nome={nome}
-        onConfirmar={() => {
-          setAssinado(true);
-          setQuando(new Date().toLocaleString("pt-BR").slice(0, 16));
-          toast.success(`Assinatura do ${papel.toLowerCase()} registrada (demonstração).`);
+        onConfirmar={async () => {
+          await onAssinar();
+          setOpen(false);
         }}
       />
     </Card>
@@ -85,20 +102,27 @@ export function AssinaturaStatusCard({
 }
 
 export function BlocoAssinaturas({
-  assinaturas,
+  slots,
   titulo = "Assinaturas necessárias",
-  podeAssinar = true,
+  assinandoPapel,
+  onAssinar,
 }: {
-  assinaturas: AssinaturaStatus[];
+  slots: AssinaturaSlot[];
   titulo?: string;
-  podeAssinar?: boolean;
+  assinandoPapel: string | null;
+  onAssinar: (papel: AssinaturaSlot["papel"]) => Promise<void>;
 }) {
   return (
     <section className="space-y-3">
       <h3 className="text-base font-semibold text-primary">{titulo}</h3>
       <div className="grid gap-3 md:grid-cols-2">
-        {assinaturas.map((a) => (
-          <AssinaturaStatusCard key={a.papel} {...a} podeAssinar={podeAssinar} />
+        {slots.map((slot) => (
+          <AssinaturaStatusCard
+            key={slot.papel}
+            {...slot}
+            assinando={assinandoPapel === slot.papel}
+            onAssinar={() => onAssinar(slot.papel)}
+          />
         ))}
       </div>
     </section>

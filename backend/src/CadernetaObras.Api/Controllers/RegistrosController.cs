@@ -13,17 +13,19 @@ public class RegistrosController : ControllerBase
     private readonly ListarRegistrosUseCase _listarRegistros;
     private readonly ObterRegistroUseCase _obterRegistro;
     private readonly AdicionarImagemUseCase _adicionarImagem;
+    private readonly ObterUrlImagemUseCase _obterUrlImagem;
     private readonly AssinarRegistroUseCase _assinarRegistro;
 
     public RegistrosController(
         CriarRegistroUseCase criarRegistro, ListarRegistrosUseCase listarRegistros,
         ObterRegistroUseCase obterRegistro, AdicionarImagemUseCase adicionarImagem,
-        AssinarRegistroUseCase assinarRegistro)
+        ObterUrlImagemUseCase obterUrlImagem, AssinarRegistroUseCase assinarRegistro)
     {
         _criarRegistro = criarRegistro;
         _listarRegistros = listarRegistros;
         _obterRegistro = obterRegistro;
         _adicionarImagem = adicionarImagem;
+        _obterUrlImagem = obterUrlImagem;
         _assinarRegistro = assinarRegistro;
     }
 
@@ -48,6 +50,10 @@ public class RegistrosController : ControllerBase
             new AdicionarImagemRequest(id, arquivo.FileName, arquivo.ContentType, stream), ct);
         return Ok(resultado);
     }
+
+    [HttpGet("api/registros/{registroId:int}/imagens/{imagemId:int}/url")]
+    public async Task<ActionResult<object>> ObterUrlImagem(int registroId, int imagemId, CancellationToken ct) =>
+        Ok(new { url = await _obterUrlImagem.ExecutarAsync(registroId, imagemId, ct) });
 
     [HttpPost("api/registros/{id:int}/assinar")]
     public async Task<ActionResult<RegistroResponse>> Assinar(int id, CancellationToken ct) =>

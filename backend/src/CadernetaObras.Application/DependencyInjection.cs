@@ -25,8 +25,10 @@ public static class DependencyInjection
         services.AddScoped<ListarRegistrosUseCase>();
         services.AddScoped<ObterRegistroUseCase>();
         services.AddScoped<AdicionarImagemUseCase>();
+        services.AddScoped<ObterUrlImagemUseCase>();
 
         services.AddScoped<CriarTermoUseCase>();
+        services.AddScoped<ObterTermoPorObraUseCase>();
 
         services.AddScoped<AssinarObraUseCase>();
         services.AddScoped<AssinarRegistroUseCase>();

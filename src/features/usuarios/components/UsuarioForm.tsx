@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,12 +14,10 @@ import {
   TIPOS_USUARIO,
   type TipoUsuario,
 } from "@/lib/constants";
-import { AlertCircle, KeyRound, MailCheck } from "lucide-react";
+import { criarUsuario } from "@/lib/api/usuarios";
+import { ApiError } from "@/lib/api/client";
+import { AlertCircle, KeyRound, Loader2, MailCheck } from "lucide-react";
 import { toast } from "sonner";
-
-// Demonstração apenas: no backend real, essa validação nunca deve viver no
-// front-end — a criação de Administrador precisa ser autorizada no servidor.
-const SENHA_SECRETA_DEV = "URUBU_REI";
 
 const badgeVarianteTipo: Record<TipoUsuario, "default" | "ativa" | "secondary"> = {
   administrador: "default",
@@ -52,25 +51,56 @@ export function UsuarioForm() {
   const labelRegistro = ehEngenheiro ? "Número de registro (CREA) *" : "Número de registro (CAU) *";
   const placeholderRegistro = ehEngenheiro ? "CREA-SP 0000000000" : "CAU A000000-0";
 
+  // O título profissional exibido ao Engenheiro/Arquiteto vira o texto
+  // livre gravado no backend (ver seção 3.5 do ROADMAP — Arquiteto é um
+  // Engenheiro cujo tituloProfissional descreve a especialidade).
+  const tituloProfissional = ehArquiteto ? "Arquiteto e Urbanista" : especialidade;
+
+  const mutation = useMutation({
+    mutationFn: criarUsuario,
+    onSuccess: (resultado) => {
+      toast.success(
+        `Usuário ${resultado.usuario.nome} cadastrado. Senha provisória: ${resultado.senhaProvisoria} (em produção isso vai por e-mail).`,
+        { duration: 10000 },
+      );
+      navigate({ to: "/usuarios" });
+    },
+    onError: (err) => {
+      // A senha secreta de Administrador é validada no servidor — o
+      // front-end nunca deveria ter esse segredo embutido no código.
+      setErro(err instanceof ApiError ? err.message : "Não foi possível cadastrar o usuário.");
+    },
+  });
+
   function salvar(e: React.FormEvent) {
     e.preventDefault();
     if (!nome.trim() || !cpf.trim() || !email.trim() || !telefone.trim() || !tipoUsuario) {
       setErro("Preencha nome, CPF, e-mail, telefone e o tipo de usuário.");
       return;
     }
-    if (ehProfissionalTecnico && (!especialidade || !registro.trim())) {
-      setErro(
-        `Para ${ehEngenheiro ? "Engenheiro" : "Arquiteto"}, informe também a especialidade e o número de registro (${ehEngenheiro ? "CREA" : "CAU"}).`,
-      );
+    if (ehEngenheiro && (!especialidade || !registro.trim())) {
+      setErro("Para Engenheiro, informe também a especialidade e o número de registro (CREA).");
       return;
     }
-    if (ehAdministrador && senhaSecreta !== SENHA_SECRETA_DEV) {
-      setErro("Senha secreta de desenvolvedor incorreta. Cadastro de Administrador negado.");
+    if (ehArquiteto && !registro.trim()) {
+      setErro("Para Arquiteto, informe também o número de registro (CAU).");
+      return;
+    }
+    if (ehAdministrador && !senhaSecreta.trim()) {
+      setErro("Informe a senha secreta de desenvolvedor para cadastrar outro Administrador.");
       return;
     }
     setErro(null);
-    toast.success("Usuário cadastrado (demonstração). Um convite com senha provisória seria enviado por e-mail.");
-    navigate({ to: "/usuarios" });
+    mutation.mutate({
+      nome: nome.trim(),
+      cpf: cpf.trim(),
+      email: email.trim(),
+      telefone: telefone.trim(),
+      tipoUsuario,
+      tituloProfissional: ehProfissionalTecnico ? tituloProfissional : null,
+      numeroRegistro: ehProfissionalTecnico ? registro.trim() : null,
+      senhaSecretaDev: ehAdministrador ? senhaSecreta : null,
+    });
   }
 
   return (
@@ -161,21 +191,23 @@ export function UsuarioForm() {
                 Dados profissionais (obrigatórios para {ehEngenheiro ? "Engenheiro" : "Arquiteto"})
               </h2>
               <div className="grid gap-5 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Especialidade *</Label>
-                  <Select value={especialidade} onValueChange={setEspecialidade}>
-                    <SelectTrigger className="min-h-11 w-full">
-                      <SelectValue placeholder="Selecione a especialidade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {especialidadesDisponiveis.map((t) => (
-                        <SelectItem key={t} value={t}>
-                          {t}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {ehEngenheiro && (
+                  <div className="space-y-2">
+                    <Label>Especialidade *</Label>
+                    <Select value={especialidade} onValueChange={setEspecialidade}>
+                      <SelectTrigger className="min-h-11 w-full">
+                        <SelectValue placeholder="Selecione a especialidade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {especialidadesDisponiveis.map((t) => (
+                          <SelectItem key={t} value={t}>
+                            {t}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="registro">{labelRegistro}</Label>
                   <Input
@@ -209,9 +241,9 @@ export function UsuarioForm() {
                   />
                   <p className="flex items-start gap-2 text-xs text-muted-foreground">
                     <KeyRound className="mt-0.5 size-3.5 shrink-0" />
-                    Criar outro Administrador do CREA exige essa senha adicional, conhecida
-                    apenas pela equipe de desenvolvimento, como proteção extra contra criação
-                    indevida de contas com acesso total ao sistema.
+                    Criar outro Administrador do CREA exige essa senha adicional, validada pelo
+                    servidor — proteção extra contra criação indevida de contas com acesso total
+                    ao sistema.
                   </p>
                 </div>
               </div>
@@ -221,8 +253,8 @@ export function UsuarioForm() {
           <div className="flex items-start gap-2 rounded-md border border-border bg-secondary/50 p-3">
             <MailCheck className="mt-0.5 size-4 shrink-0 text-primary" />
             <p className="text-xs text-muted-foreground">
-              O usuário receberá um e-mail de convite com uma senha provisória para o primeiro
-              acesso, e será solicitado a trocá-la.
+              O usuário recebe uma senha provisória para o primeiro acesso (hoje exibida na
+              tela ao cadastrar — em produção deve ser enviada por e-mail).
             </p>
           </div>
         </CardContent>
@@ -244,8 +276,9 @@ export function UsuarioForm() {
         >
           Cancelar
         </Button>
-        <Button type="submit" className="min-h-11 px-6">
-          Cadastrar usuário
+        <Button type="submit" className="min-h-11 px-6" disabled={mutation.isPending}>
+          {mutation.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+          {mutation.isPending ? "Cadastrando…" : "Cadastrar usuário"}
         </Button>
       </div>
     </form>

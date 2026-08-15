@@ -1,10 +1,12 @@
 import { PageContainer } from "@/components/layout/PageContainer";
 import { ObraForm } from "@/features/obras/components/ObraForm";
-import { usePerfil } from "@/lib/perfil-context";
+import { useRequireAuth } from "@/lib/auth-context";
 import { AcessoRestrito } from "./AcessoRestrito";
 
 export function NovaObraPage() {
-  const { perfil } = usePerfil();
+  const { perfil, carregando } = useRequireAuth();
+
+  if (carregando || !perfil) return null;
 
   if (perfil !== "administrador") {
     return (

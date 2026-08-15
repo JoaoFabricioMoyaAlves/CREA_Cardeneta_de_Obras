@@ -23,6 +23,7 @@ export function ObraForm() {
   const [tipo, setTipo] = useState("");
   const [local, setLocal] = useState("");
   const [rt, setRt] = useState("");
+  const [valorObra, setValorObra] = useState("");
   const [empresa, setEmpresa] = useState("");
   const [dataRecibo, setDataRecibo] = useState("");
   const [atividades, setAtividades] = useState<string[]>([]);
@@ -42,8 +43,10 @@ export function ObraForm() {
 
   function salvar(e: React.FormEvent) {
     e.preventDefault();
-    if (!proprietario || !engenheiro || !local.trim() || !rt.trim() || !tipo) {
-      setErro("Preencha proprietário, engenheiro, local da obra, número RT e tipo de edificação.");
+    if (!proprietario || !engenheiro || !local.trim() || !rt.trim() || !tipo || !valorObra.trim()) {
+      setErro(
+        "Preencha proprietário, engenheiro, local da obra, número RT, tipo de edificação e valor da obra.",
+      );
       return;
     }
     setErro(null);
@@ -130,6 +133,20 @@ export function ObraForm() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="valor-obra">Valor da obra (R$) *</Label>
+              <Input
+                id="valor-obra"
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.01"
+                className="min-h-11"
+                placeholder="0,00"
+                value={valorObra}
+                onChange={(e) => setValorObra(e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="empresa">Empresa / CNPJ (opcional)</Label>

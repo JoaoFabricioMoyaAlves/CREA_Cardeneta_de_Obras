@@ -16,6 +16,35 @@ export const PERFIS: { value: Perfil; label: string }[] = [
   { value: "proprietario", label: "Proprietário" },
 ];
 
+// Tipo de usuário exibido no CADASTRO (mais granular que o Perfil de acesso/RBAC
+// acima). Engenheiro e Arquiteto têm as mesmas permissões no sistema — ambos
+// mapeiam para o perfil "engenheiro" — mas são escolhidos como opções
+// separadas aqui porque exigem título profissional e registro diferentes.
+export type TipoUsuario = "administrador" | "engenheiro" | "arquiteto" | "proprietario";
+
+export const TIPOS_USUARIO: { value: TipoUsuario; label: string }[] = [
+  { value: "administrador", label: "Administrador (CREA)" },
+  { value: "engenheiro", label: "Engenheiro" },
+  { value: "arquiteto", label: "Arquiteto" },
+  { value: "proprietario", label: "Proprietário" },
+];
+
+export const ESPECIALIDADES_ENGENHARIA = [
+  "Engenheiro Civil",
+  "Engenheiro Eletricista",
+  "Engenheiro Mecânico",
+  "Engenheiro Ambiental",
+  "Outro",
+] as const;
+
+export const ESPECIALIDADES_ARQUITETURA = [
+  "Arquitetura e Urbanismo",
+  "Paisagismo",
+  "Design de Interiores",
+  "Restauro e Patrimônio Histórico",
+  "Outro",
+] as const;
+
 export const FASES_SERVICO = [
   "Serviços preliminares",
   "Fundação",

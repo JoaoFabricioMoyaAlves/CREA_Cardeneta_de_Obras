@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { FolderOpen, LayoutDashboard, PlusCircle } from "lucide-react";
+import { FolderOpen, LayoutDashboard, PlusCircle, Users } from "lucide-react";
 import { usePerfil } from "@/lib/perfil-context";
 
 export function Sidebar() {
@@ -8,7 +8,10 @@ export function Sidebar() {
   const itens = [
     { to: "/dashboard", label: "Cadernetas", icon: LayoutDashboard },
     ...(perfil === "administrador"
-      ? [{ to: "/obras/nova", label: "Nova obra", icon: PlusCircle }]
+      ? [
+          { to: "/obras/nova", label: "Nova obra", icon: PlusCircle },
+          { to: "/usuarios", label: "Usuários", icon: Users },
+        ]
       : []),
   ] as const;
 

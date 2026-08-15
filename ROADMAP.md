@@ -176,7 +176,7 @@ backend/
    ```
    (senha/autenticação fica a cargo do Supabase Auth, não fica em texto na tabela)
 
-2. **Obra**: `id_profissional` e `id_proprietario` passam a ser FK para `Usuarios` (perfil restrito via constraint/validação). Adicionar `id_administrador` (quem criou) e `status` (`pendente_assinatura` / `ativa` / `finalizada`).
+2. **Obra**: `id_profissional` e `id_proprietario` passam a ser FK para `Usuarios` (perfil restrito via constraint/validação). Adicionar `id_administrador` (quem criou), `status` (`pendente_assinatura` / `ativa` / `finalizada`) e `valor_obra` (`DECIMAL(14,2) NOT NULL` — valor total orçado/contratado da obra, em R$).
 
 3. **Assinatura_obra / Assinatura (relato) / Assinatura_termo_conclusao**: adicionar `id_usuario` (FK Usuarios, quem assinou) + `papel` (engenheiro/proprietario, derivado do perfil no momento da assinatura) + `user_agent`. Constraint `UNIQUE(entidade_id, id_usuario)` para impedir assinatura duplicada. A entidade só vira `ativa`/`imutável` quando existir 1 assinatura de cada papel exigido.
 

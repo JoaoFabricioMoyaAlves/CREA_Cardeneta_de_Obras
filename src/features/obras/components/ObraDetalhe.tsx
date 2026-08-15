@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { areaTotal, nomeUsuario, registrosDaObra, type Obra } from "@/lib/mock-data";
+import { areaTotal, formatarMoeda, nomeUsuario, registrosDaObra, type Obra } from "@/lib/mock-data";
 import { usePerfil } from "@/lib/perfil-context";
 import { StatusBadge } from "./ObraCard";
 import { RegistroCard } from "@/features/registros/components/RegistroCard";
@@ -71,6 +71,7 @@ export function ObraDetalhe({ obra }: { obra: Obra }) {
             <Info titulo="Proprietário" valor={nomeUsuario(obra.proprietarioId)} />
             <Info titulo="Número RT" valor={obra.numeroRT} />
             <Info titulo="Tipo de edificação" valor={obra.tipoEdificacao} />
+            <Info titulo="Valor da obra" valor={formatarMoeda(obra.valorObra)} />
             <Info titulo="Atividade técnica" valor={obra.atividades.join(", ") || "—"} />
             <Info titulo="Empresa" valor={obra.empresa ?? "Não informada"} />
           </div>

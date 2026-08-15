@@ -4,8 +4,11 @@ export type Usuario = {
   id: string;
   nome: string;
   documento: string;
+  email: string;
+  telefone: string;
   perfil: Perfil;
   registroCrea?: string;
+  tituloProfissional?: string;
 };
 
 export const usuarios: Usuario[] = [
@@ -13,32 +16,44 @@ export const usuarios: Usuario[] = [
     id: "u1",
     nome: "Marina Alves Peixoto",
     documento: "123.456.789-00",
+    email: "marina.peixoto@crea.org.br",
+    telefone: "(11) 98765-4321",
     perfil: "administrador",
   },
   {
     id: "u2",
     nome: "Eng. Rafael Monteiro",
     documento: "987.654.321-00",
+    email: "rafael.monteiro@email.com",
+    telefone: "(11) 91234-5678",
     perfil: "engenheiro",
     registroCrea: "CREA-SP 5063214578",
+    tituloProfissional: "Engenheiro Civil",
   },
   {
     id: "u3",
     nome: "Arq. Helena Duarte",
     documento: "456.123.789-00",
+    email: "helena.duarte@email.com",
+    telefone: "(19) 99876-1234",
     perfil: "engenheiro",
     registroCrea: "CAU A118924-7",
+    tituloProfissional: "Arquiteto e Urbanista",
   },
   {
     id: "u4",
     nome: "Carlos Eduardo Ramos",
     documento: "321.654.987-00",
+    email: "carlos.ramos@email.com",
+    telefone: "(11) 98888-2222",
     perfil: "proprietario",
   },
   {
     id: "u5",
     nome: "Beatriz Nogueira Lima",
     documento: "741.852.963-00",
+    email: "beatriz.lima@email.com",
+    telefone: "(19) 97777-3333",
     perfil: "proprietario",
   },
 ];
@@ -75,6 +90,7 @@ export type Obra = {
   cidade: string;
   numeroRT: string;
   tipoEdificacao: string;
+  valorObra: number;
   status: StatusObra;
   engenheiroId: string;
   proprietarioId: string;
@@ -98,6 +114,7 @@ export const obras: Obra[] = [
     cidade: "São Paulo / SP",
     numeroRT: "RT 88.412/2026",
     tipoEdificacao: "Residencial unifamiliar",
+    valorObra: 980000,
     status: "Ativa",
     engenheiroId: "u2",
     proprietarioId: "u4",
@@ -127,6 +144,7 @@ export const obras: Obra[] = [
     cidade: "Campinas / SP",
     numeroRT: "RT 91.007/2026",
     tipoEdificacao: "Comercial",
+    valorObra: 3250000,
     status: "Pendente assinatura",
     engenheiroId: "u2",
     proprietarioId: "u5",
@@ -150,6 +168,7 @@ export const obras: Obra[] = [
     cidade: "Atibaia / SP",
     numeroRT: "RT 74.559/2025",
     tipoEdificacao: "Residencial multifamiliar",
+    valorObra: 5600000,
     status: "Finalizada",
     engenheiroId: "u3",
     proprietarioId: "u4",
@@ -179,6 +198,7 @@ export const obras: Obra[] = [
     cidade: "Sorocaba / SP",
     numeroRT: "RT 93.310/2026",
     tipoEdificacao: "Industrial",
+    valorObra: 8900000,
     status: "Ativa",
     engenheiroId: "u3",
     proprietarioId: "u5",
@@ -362,4 +382,8 @@ export function obrasVisiveis(perfil: Perfil) {
 
 export function areaTotal(areas: Obra["areas"]) {
   return areas.construir + areas.ampliar + areas.reformar + areas.regularizar;
+}
+
+export function formatarMoeda(valor: number) {
+  return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }

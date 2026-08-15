@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { areaTotal, nomeUsuario, type Obra } from "@/lib/mock-data";
+import { areaTotal, formatarMoeda, nomeUsuario, type Obra } from "@/lib/mock-data";
 import type { StatusObra } from "@/lib/constants";
-import { ChevronRight, HardHat, MapPin, Ruler, User } from "lucide-react";
+import { ChevronRight, CircleDollarSign, HardHat, MapPin, Ruler, User } from "lucide-react";
 
 export function StatusBadge({ status }: { status: StatusObra }) {
   const variante =
@@ -47,6 +47,11 @@ export function ObraCard({ obra }: { obra: Obra }) {
               <Ruler className="size-4 text-primary" />
               <span className="text-muted-foreground">Área total:</span>
               {areaTotal(obra.areas).toLocaleString("pt-BR")} m²
+            </p>
+            <p className="flex items-center gap-2 text-foreground">
+              <CircleDollarSign className="size-4 text-primary" />
+              <span className="text-muted-foreground">Valor da obra:</span>
+              {formatarMoeda(obra.valorObra)}
             </p>
           </div>
         </CardContent>

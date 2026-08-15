@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,7 +61,15 @@ export function LoginForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="senha">Senha</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="senha">Senha</Label>
+              <Link
+                to="/recuperar-senha"
+                className="text-sm font-medium text-link hover:underline"
+              >
+                Esqueceu a senha?
+              </Link>
+            </div>
             <Input
               id="senha"
               type="password"
@@ -84,10 +92,6 @@ export function LoginForm() {
             {carregando && <Loader2 className="mr-2 size-4 animate-spin" />}
             {carregando ? "Entrando…" : "Entrar"}
           </Button>
-
-          <p className="text-center text-xs text-muted-foreground">
-            Demonstração visual — use qualquer CPF e uma senha com 4+ caracteres.
-          </p>
         </form>
       </CardContent>
     </Card>

@@ -11,8 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
+import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as ObrasIdRouteImport } from './routes/obras.$id'
 import { Route as ObrasNovaRouteImport } from './routes/obras.nova'
+import { Route as UsuariosNovoRouteImport } from './routes/usuarios_.novo'
 import { Route as ObrasIdIndexRouteImport } from './routes/obras.$id.index'
 import { Route as ObrasIdFinalizarRouteImport } from './routes/obras.$id.finalizar'
 import { Route as ObrasIdRegistrosRegistroIdRouteImport } from './routes/obras.$id.registros.$registroId'
@@ -28,6 +31,16 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
+  id: '/recuperar-senha',
+  path: '/recuperar-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsuariosRoute = UsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ObrasIdRoute = ObrasIdRouteImport.update({
   id: '/obras/$id',
   path: '/obras/$id',
@@ -36,6 +49,11 @@ const ObrasIdRoute = ObrasIdRouteImport.update({
 const ObrasNovaRoute = ObrasNovaRouteImport.update({
   id: '/obras/nova',
   path: '/obras/nova',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsuariosNovoRoute = UsuariosNovoRouteImport.update({
+  id: '/usuarios_/novo',
+  path: '/usuarios/novo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ObrasIdIndexRoute = ObrasIdIndexRouteImport.update({
@@ -63,8 +81,11 @@ const ObrasIdRegistrosNovoRoute = ObrasIdRegistrosNovoRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/usuarios': typeof UsuariosRoute
   '/obras/$id': typeof ObrasIdRouteWithChildren
   '/obras/nova': typeof ObrasNovaRoute
+  '/usuarios/novo': typeof UsuariosNovoRoute
   '/obras/$id/finalizar': typeof ObrasIdFinalizarRoute
   '/obras/$id/': typeof ObrasIdIndexRoute
   '/obras/$id/registros/$registroId': typeof ObrasIdRegistrosRegistroIdRoute
@@ -73,7 +94,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/usuarios': typeof UsuariosRoute
   '/obras/nova': typeof ObrasNovaRoute
+  '/usuarios/novo': typeof UsuariosNovoRoute
   '/obras/$id/finalizar': typeof ObrasIdFinalizarRoute
   '/obras/$id': typeof ObrasIdIndexRoute
   '/obras/$id/registros/$registroId': typeof ObrasIdRegistrosRegistroIdRoute
@@ -83,8 +107,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/usuarios': typeof UsuariosRoute
   '/obras/$id': typeof ObrasIdRouteWithChildren
   '/obras/nova': typeof ObrasNovaRoute
+  '/usuarios_/novo': typeof UsuariosNovoRoute
   '/obras/$id/finalizar': typeof ObrasIdFinalizarRoute
   '/obras/$id/': typeof ObrasIdIndexRoute
   '/obras/$id/registros/$registroId': typeof ObrasIdRegistrosRegistroIdRoute
@@ -95,8 +122,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/recuperar-senha'
+    | '/usuarios'
     | '/obras/$id'
     | '/obras/nova'
+    | '/usuarios/novo'
     | '/obras/$id/finalizar'
     | '/obras/$id/'
     | '/obras/$id/registros/$registroId'
@@ -105,7 +135,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard'
+    | '/recuperar-senha'
+    | '/usuarios'
     | '/obras/nova'
+    | '/usuarios/novo'
     | '/obras/$id/finalizar'
     | '/obras/$id'
     | '/obras/$id/registros/$registroId'
@@ -114,8 +147,11 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/recuperar-senha'
+    | '/usuarios'
     | '/obras/$id'
     | '/obras/nova'
+    | '/usuarios_/novo'
     | '/obras/$id/finalizar'
     | '/obras/$id/'
     | '/obras/$id/registros/$registroId'
@@ -125,8 +161,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRoute
+  RecuperarSenhaRoute: typeof RecuperarSenhaRoute
+  UsuariosRoute: typeof UsuariosRoute
   ObrasIdRoute: typeof ObrasIdRouteWithChildren
   ObrasNovaRoute: typeof ObrasNovaRoute
+  UsuariosNovoRoute: typeof UsuariosNovoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -145,6 +184,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/recuperar-senha': {
+      id: '/recuperar-senha'
+      path: '/recuperar-senha'
+      fullPath: '/recuperar-senha'
+      preLoaderRoute: typeof RecuperarSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/usuarios': {
+      id: '/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof UsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/obras/$id': {
       id: '/obras/$id'
       path: '/obras/$id'
@@ -157,6 +210,13 @@ declare module '@tanstack/react-router' {
       path: '/obras/nova'
       fullPath: '/obras/nova'
       preLoaderRoute: typeof ObrasNovaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/usuarios_/novo': {
+      id: '/usuarios_/novo'
+      path: '/usuarios/novo'
+      fullPath: '/usuarios/novo'
+      preLoaderRoute: typeof UsuariosNovoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/obras/$id/': {
@@ -210,8 +270,11 @@ const ObrasIdRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRoute,
+  RecuperarSenhaRoute: RecuperarSenhaRoute,
+  UsuariosRoute: UsuariosRoute,
   ObrasIdRoute: ObrasIdRouteWithChildren,
   ObrasNovaRoute: ObrasNovaRoute,
+  UsuariosNovoRoute: UsuariosNovoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

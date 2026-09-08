@@ -7,6 +7,7 @@ using CadernetaObras.Infrastructure;
 using CadernetaObras.Infrastructure.Auth;
 using CadernetaObras.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,6 +43,16 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// Atrás do Caddy (reverse proxy em 127.0.0.1), a conexão TCP com o Kestrel é
+// sempre HTTP puro — sem isso, UseHttpsRedirection() abaixo entraria em loop
+// de redirecionamento, pois nunca veria a requisição como HTTPS.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var frontendOrigins = builder.Configuration.GetSection("Cors:FrontendOrigins").Get<string[]>()
     ?? new[] { "http://localhost:8080", "http://localhost:8081" };
 
@@ -56,6 +67,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 // Aplica migrations pendentes e semeia o primeiro Administrador (se
 // configurado via Bootstrap:AdminCpf/AdminSenha e ainda não existir nenhum).

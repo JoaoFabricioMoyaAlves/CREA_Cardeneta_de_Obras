@@ -27,13 +27,11 @@ public class CriarObraUseCase
 
     public async Task<ObraResponse> ExecutarAsync(CriarObraRequest request, CancellationToken ct = default)
     {
-        if (_currentUser.Perfil != PerfilUsuario.Administrador)
-            throw new ForbiddenException("Somente o Administrador do CREA pode criar uma nova obra.");
+        if (_currentUser.Perfil != PerfilUsuario.Engenheiro)
+            throw new ForbiddenException("Somente o Engenheiro/Arquiteto responsável pode criar uma nova obra.");
 
-        var profissional = await _usuarios.ObterPorIdAsync(request.ProfissionalId, ct)
+        var profissional = await _usuarios.ObterPorIdAsync(_currentUser.UsuarioId, ct)
             ?? throw new ValidationAppException("Engenheiro/Arquiteto responsável não encontrado.");
-        if (profissional.Perfil != PerfilUsuario.Engenheiro)
-            throw new ValidationAppException("O responsável técnico informado não é um Engenheiro/Arquiteto.");
 
         var proprietario = await _usuarios.ObterPorIdAsync(request.ProprietarioId, ct)
             ?? throw new ValidationAppException("Proprietário não encontrado.");
@@ -44,7 +42,7 @@ public class CriarObraUseCase
 
         var obra = new Obra
         {
-            IdAdministrador = _currentUser.UsuarioId,
+            IdAdministrador = null,
             IdProfissional = profissional.Id,
             IdProprietario = proprietario.Id,
             LocalObra = request.LocalObra.Trim(),

@@ -40,6 +40,7 @@ internal static class ObraMapper
             obra.Status.ToString(),
             profissional.Id,
             profissional.Nome,
+            profissional.TituloProfissional,
             proprietario.Id,
             proprietario.Nome,
             obra.NomeEmpresa,

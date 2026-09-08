@@ -18,8 +18,10 @@ public class ListarUsuariosUseCase
 
     public async Task<List<UsuarioResponse>> ExecutarAsync(CancellationToken ct = default)
     {
-        if (_currentUser.Perfil != PerfilUsuario.Administrador)
-            throw new ForbiddenException("Somente o Administrador do CREA pode listar usuários.");
+        // Administrador lista para gerenciar cadastros; Engenheiro/Arquiteto lista
+        // para escolher o proprietário ao criar uma nova obra.
+        if (_currentUser.Perfil != PerfilUsuario.Administrador && _currentUser.Perfil != PerfilUsuario.Engenheiro)
+            throw new ForbiddenException("Somente o Administrador do CREA ou um Engenheiro/Arquiteto podem listar usuários.");
 
         var usuarios = await _usuarios.ListarAsync(ct);
 

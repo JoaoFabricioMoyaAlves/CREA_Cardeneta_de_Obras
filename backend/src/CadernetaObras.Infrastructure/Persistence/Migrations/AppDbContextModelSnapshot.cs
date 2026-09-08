@@ -314,7 +314,7 @@ namespace CadernetaObras.Infrastructure.Persistence.Migrations
                     b.Property<DateOnly>("DataReciboAbertura")
                         .HasColumnType("date");
 
-                    b.Property<Guid>("IdAdministrador")
+                    b.Property<Guid?>("IdAdministrador")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("IdProfissional")

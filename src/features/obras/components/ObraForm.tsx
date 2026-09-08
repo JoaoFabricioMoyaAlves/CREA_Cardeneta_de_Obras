@@ -12,20 +12,20 @@ import { ATIVIDADES_TECNICAS, TIPOS_EDIFICACAO } from "@/lib/constants";
 import { listarUsuarios } from "@/lib/api/usuarios";
 import { criarObra } from "@/lib/api/obras";
 import { ApiError } from "@/lib/api/client";
+import { dataHojeIso } from "@/lib/format";
 import { AlertCircle, Loader2, Ruler } from "lucide-react";
 import { toast } from "sonner";
 
 export function ObraForm() {
   const navigate = useNavigate();
   const [proprietario, setProprietario] = useState("");
-  const [engenheiro, setEngenheiro] = useState("");
   const [tipo, setTipo] = useState("");
   const [local, setLocal] = useState("");
   const [cidade, setCidade] = useState("");
   const [rt, setRt] = useState("");
   const [valorObra, setValorObra] = useState("");
   const [empresa, setEmpresa] = useState("");
-  const [dataRecibo, setDataRecibo] = useState("");
+  const [dataRecibo] = useState(dataHojeIso());
   const [atividades, setAtividades] = useState<string[]>([]);
   const [areas, setAreas] = useState({
     construir: "",
@@ -36,7 +36,6 @@ export function ObraForm() {
   const [erro, setErro] = useState<string | null>(null);
 
   const { data: usuarios } = useQuery({ queryKey: ["usuarios"], queryFn: listarUsuarios });
-  const engenheiros = usuarios?.filter((u) => u.perfil === "Engenheiro") ?? [];
   const proprietarios = usuarios?.filter((u) => u.perfil === "Proprietario") ?? [];
 
   const total = Object.values(areas).reduce((s, v) => s + (parseFloat(v) || 0), 0);
@@ -58,14 +57,13 @@ export function ObraForm() {
 
   function salvar(e: React.FormEvent) {
     e.preventDefault();
-    if (!proprietario || !engenheiro || !local.trim() || !cidade.trim() || !rt.trim() || !tipo || !valorObra.trim() || !dataRecibo) {
-      setErro("Preencha proprietário, engenheiro, local, cidade, número RT, tipo de edificação, valor da obra e data do recibo.");
+    if (!proprietario || !local.trim() || !cidade.trim() || !rt.trim() || !tipo || !valorObra.trim() || !dataRecibo) {
+      setErro("Preencha proprietário, local, cidade, número RT, tipo de edificação, valor da obra e data do recibo.");
       return;
     }
     setErro(null);
     mutation.mutate({
       proprietarioId: proprietario,
-      profissionalId: engenheiro,
       localObra: local.trim(),
       cidade: cidade.trim(),
       numeroRt: rt.trim(),
@@ -90,7 +88,7 @@ export function ObraForm() {
     <form onSubmit={salvar} className="space-y-6" noValidate>
       <Card className="border-border">
         <CardContent className="space-y-6 p-5 md:p-6">
-          <h2 className="text-lg font-semibold text-primary">Responsáveis</h2>
+          <h2 className="text-lg font-semibold text-primary">Responsável</h2>
           <div className="grid gap-5 md:grid-cols-2">
             <div className="space-y-2">
               <Label>Proprietário do imóvel *</Label>
@@ -102,21 +100,6 @@ export function ObraForm() {
                   {proprietarios.map((u) => (
                     <SelectItem key={u.id} value={u.id}>
                       {u.nome} — {u.cpf}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Engenheiro/Arquiteto responsável *</Label>
-              <Select value={engenheiro} onValueChange={setEngenheiro}>
-                <SelectTrigger className="min-h-11 w-full">
-                  <SelectValue placeholder="Selecione o profissional" />
-                </SelectTrigger>
-                <SelectContent>
-                  {engenheiros.map((u) => (
-                    <SelectItem key={u.id} value={u.id}>
-                      {u.nome} — {u.numeroRegistro}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -204,7 +187,8 @@ export function ObraForm() {
                 type="date"
                 className="min-h-11"
                 value={dataRecibo}
-                onChange={(e) => setDataRecibo(e.target.value)}
+                disabled
+                readOnly
               />
             </div>
           </div>

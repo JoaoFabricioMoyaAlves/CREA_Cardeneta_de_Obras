@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { PerfilApi, UsuarioResponse } from "@/lib/api/types";
+import { nomeComAbreviacao } from "@/lib/constants";
 import { Mail, Phone, ShieldCheck } from "lucide-react";
 
 const perfilInfo: Record<PerfilApi, { label: string; variant: "default" | "ativa" | "secondary" }> = {
@@ -20,7 +21,9 @@ export function UsuarioCard({ usuario }: { usuario: UsuarioResponse }) {
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-base font-semibold text-primary">{usuario.nome}</h3>
+            <h3 className="text-base font-semibold text-primary">
+              {nomeComAbreviacao(usuario.nome, usuario.perfil, usuario.tituloProfissional)}
+            </h3>
             <p className="text-xs text-muted-foreground">{usuario.cpf}</p>
           </div>
           <PerfilBadge perfil={usuario.perfil} />

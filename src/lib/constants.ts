@@ -39,6 +39,27 @@ export const ESPECIALIDADES_ARQUITETURA = [
   "Outro",
 ] as const;
 
+// Perfil de acesso (RBAC) não distingue Engenheiro de Arquiteto — ambos são
+// PerfilUsuario.Engenheiro no backend. A abreviação exibida ao usuário usa o
+// tituloProfissional (que vem de ESPECIALIDADES_ENGENHARIA ou
+// ESPECIALIDADES_ARQUITETURA) só para escolher entre "Eng." e "Arq.".
+type PerfilComoTexto = "Administrador" | "Engenheiro" | "Proprietario";
+
+export function abreviarPerfil(perfil: PerfilComoTexto, tituloProfissional?: string | null): string {
+  if (perfil === "Administrador") return "Admin.";
+  if (perfil === "Proprietario") return "Prop.";
+  const ehArquiteto = (ESPECIALIDADES_ARQUITETURA as readonly string[]).includes(tituloProfissional ?? "");
+  return ehArquiteto ? "Arq." : "Eng.";
+}
+
+export function nomeComAbreviacao(
+  nome: string,
+  perfil: PerfilComoTexto,
+  tituloProfissional?: string | null,
+): string {
+  return `${abreviarPerfil(perfil, tituloProfissional)} ${nome}`;
+}
+
 export const FASES_SERVICO = [
   "Serviços preliminares",
   "Fundação",

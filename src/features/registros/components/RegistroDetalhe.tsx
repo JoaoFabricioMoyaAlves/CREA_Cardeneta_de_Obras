@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FASES_SERVICO } from "@/lib/constants";
+import { FASES_SERVICO, nomeComAbreviacao } from "@/lib/constants";
 import { formatarData } from "@/lib/format";
 import { assinarRegistro, adicionarImagem } from "@/lib/api/registros";
 import { ApiError } from "@/lib/api/client";
@@ -23,6 +23,13 @@ export function RegistroDetalhe({ registro, obra }: { registro: RegistroResponse
 
   const ehEngenheiroResponsavel = perfil === "engenheiro" && usuario?.id === obra.profissionalId;
   const podeAdicionarFoto = ehEngenheiroResponsavel && registro.status === "PendenteAssinatura";
+
+  const nomeProfissional = nomeComAbreviacao(
+    obra.nomeProfissional,
+    "Engenheiro",
+    obra.tituloProfissionalResponsavel,
+  );
+  const nomeProprietario = nomeComAbreviacao(obra.nomeProprietario, "Proprietario");
 
   function invalidar() {
     queryClient.invalidateQueries({ queryKey: ["registro", registro.id] });
@@ -72,7 +79,7 @@ export function RegistroDetalhe({ registro, obra }: { registro: RegistroResponse
   const slots: AssinaturaSlot[] = [
     {
       papel: "Engenheiro",
-      nome: obra.nomeProfissional,
+      nome: nomeProfissional,
       assinadoEm: assinaturaEngenheiro?.data ?? null,
       hash: assinaturaEngenheiro?.hash ?? null,
       carimboTempoVerificado: assinaturaEngenheiro?.carimboTempoVerificado,
@@ -85,7 +92,7 @@ export function RegistroDetalhe({ registro, obra }: { registro: RegistroResponse
     },
     {
       papel: "Proprietario",
-      nome: obra.nomeProprietario,
+      nome: nomeProprietario,
       assinadoEm: assinaturaProprietario?.data ?? null,
       hash: assinaturaProprietario?.hash ?? null,
       carimboTempoVerificado: assinaturaProprietario?.carimboTempoVerificado,

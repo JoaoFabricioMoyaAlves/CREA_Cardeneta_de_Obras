@@ -82,6 +82,7 @@ export type ObraResponse = {
   status: StatusObraApi;
   profissionalId: string;
   nomeProfissional: string;
+  tituloProfissionalResponsavel: string | null;
   proprietarioId: string;
   nomeProprietario: string;
   nomeEmpresa: string | null;

@@ -14,6 +14,17 @@ export function formatarCpfInput(valor: string): string {
   return resultado;
 }
 
+// Data de hoje no formato "YYYY-MM-DD" (fuso local, não UTC) — usada como
+// valor fixo e não editável nos campos de data que registram o momento do
+// preenchimento (visita, recibo, conclusão).
+export function dataHojeIso(): string {
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+  const dia = String(hoje.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+}
+
 // API manda datas "YYYY-MM-DD" (DateOnly do .NET) — evita o bug clássico de
 // `new Date("YYYY-MM-DD")` interpretar como UTC e exibir o dia anterior.
 export function formatarData(dataIso: string) {

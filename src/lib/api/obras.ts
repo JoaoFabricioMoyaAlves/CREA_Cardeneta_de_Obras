@@ -11,7 +11,6 @@ export function obterObra(id: number) {
 
 export type CriarObraPayload = {
   proprietarioId: string;
-  profissionalId: string;
   localObra: string;
   cidade: string;
   numeroRt: string;

@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatarMoeda } from "@/lib/format";
+import { nomeComAbreviacao } from "@/lib/constants";
 import type { ObraResponse, StatusObraApi } from "@/lib/api/types";
 import { ChevronRight, CircleDollarSign, HardHat, MapPin, Ruler, User } from "lucide-react";
 
@@ -41,12 +42,12 @@ export function ObraCard({ obra }: { obra: ObraResponse }) {
             <p className="flex items-center gap-2 text-foreground">
               <HardHat className="size-4 text-primary" />
               <span className="text-muted-foreground">Responsável técnico:</span>
-              {obra.nomeProfissional}
+              {nomeComAbreviacao(obra.nomeProfissional, "Engenheiro", obra.tituloProfissionalResponsavel)}
             </p>
             <p className="flex items-center gap-2 text-foreground">
               <User className="size-4 text-primary" />
               <span className="text-muted-foreground">Proprietário:</span>
-              {obra.nomeProprietario}
+              {nomeComAbreviacao(obra.nomeProprietario, "Proprietario")}
             </p>
             <p className="flex items-center gap-2 text-foreground">
               <Ruler className="size-4 text-primary" />

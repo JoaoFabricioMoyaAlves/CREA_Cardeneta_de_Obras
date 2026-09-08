@@ -7,9 +7,9 @@ export function Sidebar() {
 
   const itens = [
     { to: "/dashboard", label: "Cadernetas", icon: LayoutDashboard },
+    ...(perfil === "engenheiro" ? [{ to: "/obras/nova", label: "Nova obra", icon: PlusCircle }] : []),
     ...(perfil === "administrador"
       ? [
-          { to: "/obras/nova", label: "Nova obra", icon: PlusCircle },
           { to: "/usuarios", label: "Usuários", icon: Users },
           { to: "/auditoria", label: "Auditoria", icon: ShieldCheck },
         ]

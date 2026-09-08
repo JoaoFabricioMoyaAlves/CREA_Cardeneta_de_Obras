@@ -9,12 +9,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { criarTermo } from "@/lib/api/termos";
 import { ApiError } from "@/lib/api/client";
 import type { ObraResponse } from "@/lib/api/types";
+import { dataHojeIso } from "@/lib/format";
 import { AlertCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function TermoConclusaoForm({ obra }: { obra: ObraResponse }) {
   const navigate = useNavigate();
-  const [data, setData] = useState("");
+  const [data] = useState(dataHojeIso());
   const [declaracao, setDeclaracao] = useState(
     "Declaro, para os devidos fins e sob responsabilidade técnica, que a obra foi concluída conforme o projeto aprovado e as normas técnicas aplicáveis.",
   );
@@ -61,7 +62,8 @@ export function TermoConclusaoForm({ obra }: { obra: ObraResponse }) {
               type="date"
               className="min-h-11"
               value={data}
-              onChange={(e) => setData(e.target.value)}
+              disabled
+              readOnly
             />
           </div>
           <div className="space-y-2">

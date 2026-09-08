@@ -8,9 +8,9 @@ export function NovaObraPage() {
 
   if (carregando || !perfil) return null;
 
-  if (perfil !== "administrador") {
+  if (perfil !== "engenheiro") {
     return (
-      <AcessoRestrito mensagem="Somente o Administrador do CREA pode abrir novas cadernetas de obra." />
+      <AcessoRestrito mensagem="Somente o Engenheiro/Arquiteto responsável pode abrir novas cadernetas de obra." />
     );
   }
 

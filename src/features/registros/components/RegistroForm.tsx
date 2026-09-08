@@ -13,12 +13,13 @@ import { FASES_SERVICO, POSICOES_OBRA } from "@/lib/constants";
 import { criarRegistro } from "@/lib/api/registros";
 import { ApiError } from "@/lib/api/client";
 import type { ObraResponse } from "@/lib/api/types";
+import { dataHojeIso } from "@/lib/format";
 import { AlertCircle, ImagePlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function RegistroForm({ obra }: { obra: ObraResponse }) {
   const navigate = useNavigate();
-  const [data, setData] = useState("");
+  const [data] = useState(dataHojeIso());
   const [posicao, setPosicao] = useState("");
   const [decisoes, setDecisoes] = useState("");
   const [fases, setFases] = useState<string[]>([]);
@@ -70,7 +71,8 @@ export function RegistroForm({ obra }: { obra: ObraResponse }) {
                 type="date"
                 className="min-h-11"
                 value={data}
-                onChange={(e) => setData(e.target.value)}
+                disabled
+                readOnly
               />
             </div>
             <div className="space-y-2">

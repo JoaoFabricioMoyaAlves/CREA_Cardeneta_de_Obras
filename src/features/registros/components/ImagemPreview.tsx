@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ImageOff, Loader2 } from "lucide-react";
 
 export function ImagemPreview({ registroId, imagemId, nome }: { registroId: number; imagemId: number; nome: string }) {
+  const [open, setOpen] = useState(false);
   const { data, isLoading, isError } = useQuery({
     queryKey: ["imagemUrl", registroId, imagemId],
     queryFn: () => api.get<{ url: string }>(`/api/registros/${registroId}/imagens/${imagemId}/url`),
@@ -27,11 +30,26 @@ export function ImagemPreview({ registroId, imagemId, nome }: { registroId: numb
   }
 
   return (
-    <img
-      src={data.url}
-      alt={nome}
-      loading="lazy"
-      className="aspect-4/3 w-full rounded-lg border border-border object-cover"
-    />
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="block aspect-4/3 w-full cursor-zoom-in overflow-hidden rounded-lg border border-border focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <img
+          src={data.url}
+          alt={nome}
+          loading="lazy"
+          className="size-full object-cover transition-transform hover:scale-105"
+        />
+      </button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-3xl border-none bg-transparent p-0 shadow-none [&>button]:text-white [&>button]:opacity-80 [&>button]:hover:opacity-100">
+          <DialogTitle className="sr-only">{nome}</DialogTitle>
+          <img src={data.url} alt={nome} className="max-h-[85vh] w-full rounded-lg object-contain" />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

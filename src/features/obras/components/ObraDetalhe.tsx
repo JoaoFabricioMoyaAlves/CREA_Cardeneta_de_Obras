@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatarData, formatarMoeda } from "@/lib/format";
+import { nomeComAbreviacao } from "@/lib/constants";
 import { assinarObra } from "@/lib/api/obras";
 import { assinarTermo } from "@/lib/api/termos";
 import { ApiError } from "@/lib/api/client";
@@ -32,6 +33,13 @@ export function ObraDetalhe({
   const [assinandoPapelTermo, setAssinandoPapelTermo] = useState<string | null>(null);
 
   const ehEngenheiroResponsavel = perfil === "engenheiro" && usuario?.id === obra.profissionalId;
+
+  const nomeProfissional = nomeComAbreviacao(
+    obra.nomeProfissional,
+    "Engenheiro",
+    obra.tituloProfissionalResponsavel,
+  );
+  const nomeProprietario = nomeComAbreviacao(obra.nomeProprietario, "Proprietario");
 
   function invalidar() {
     queryClient.invalidateQueries({ queryKey: ["obra", obra.id] });
@@ -85,7 +93,7 @@ export function ObraDetalhe({
   const slotsObra: AssinaturaSlot[] = [
     {
       papel: "Engenheiro",
-      nome: obra.nomeProfissional,
+      nome: nomeProfissional,
       assinadoEm: assinaturaEngenheiro?.data ?? null,
       hash: assinaturaEngenheiro?.hash ?? null,
       carimboTempoVerificado: assinaturaEngenheiro?.carimboTempoVerificado,
@@ -98,7 +106,7 @@ export function ObraDetalhe({
     },
     {
       papel: "Proprietario",
-      nome: obra.nomeProprietario,
+      nome: nomeProprietario,
       assinadoEm: assinaturaProprietario?.data ?? null,
       hash: assinaturaProprietario?.hash ?? null,
       carimboTempoVerificado: assinaturaProprietario?.carimboTempoVerificado,
@@ -118,7 +126,7 @@ export function ObraDetalhe({
     ? [
         {
           papel: "Engenheiro",
-          nome: obra.nomeProfissional,
+          nome: nomeProfissional,
           assinadoEm: termoAssEngenheiro?.data ?? null,
           hash: termoAssEngenheiro?.hash ?? null,
           carimboTempoVerificado: termoAssEngenheiro?.carimboTempoVerificado,
@@ -131,7 +139,7 @@ export function ObraDetalhe({
         },
         {
           papel: "Proprietario",
-          nome: obra.nomeProprietario,
+          nome: nomeProprietario,
           assinadoEm: termoAssProprietario?.data ?? null,
           hash: termoAssProprietario?.hash ?? null,
           carimboTempoVerificado: termoAssProprietario?.carimboTempoVerificado,
@@ -198,8 +206,8 @@ export function ObraDetalhe({
           </div>
 
           <div className="grid gap-4 border-t border-border pt-4 md:grid-cols-3">
-            <Info titulo="Responsável técnico" valor={obra.nomeProfissional} />
-            <Info titulo="Proprietário" valor={obra.nomeProprietario} />
+            <Info titulo="Responsável técnico" valor={nomeProfissional} />
+            <Info titulo="Proprietário" valor={nomeProprietario} />
             <Info titulo="Número RT" valor={obra.numeroRt} />
             <Info titulo="Tipo de edificação" valor={obra.tipoEdificacao} />
             <Info titulo="Valor da obra" valor={formatarMoeda(obra.valorObra)} />

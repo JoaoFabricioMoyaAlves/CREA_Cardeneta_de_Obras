@@ -2,7 +2,6 @@ namespace CadernetaObras.Application.Obras;
 
 public record CriarObraRequest(
     Guid ProprietarioId,
-    Guid ProfissionalId,
     string LocalObra,
     string Cidade,
     string NumeroRt,
@@ -49,6 +48,9 @@ public record ObraResponse(
     string Status,
     Guid ProfissionalId,
     string NomeProfissional,
+    // Distingue Engenheiro de Arquiteto para exibição (ambos são o mesmo
+    // PerfilUsuario.Engenheiro no RBAC — a diferença é só de rótulo/UI).
+    string? TituloProfissionalResponsavel,
     Guid ProprietarioId,
     string NomeProprietario,
     string? NomeEmpresa,

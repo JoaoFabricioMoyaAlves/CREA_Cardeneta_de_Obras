@@ -34,7 +34,7 @@ export function DashboardPage() {
 
   const descricao =
     perfil === "administrador"
-      ? "Todas as cadernetas registradas no conselho."
+      ? "Todas as cadernetas registradas no conselho — acesso apenas para consulta e monitoramento."
       : perfil === "engenheiro"
         ? "Cadernetas sob sua responsabilidade técnica."
         : "Cadernetas do seu imóvel — acesso para consulta e assinatura.";
@@ -44,7 +44,7 @@ export function DashboardPage() {
       titulo="Cadernetas de obra"
       descricao={descricao}
       acoes={
-        perfil === "administrador" ? (
+        perfil === "engenheiro" ? (
           <Button asChild variant="destaque" className="min-h-12 px-6 text-base">
             <Link to="/obras/nova">
               <Plus className="mr-2 size-5" /> Criar nova obra

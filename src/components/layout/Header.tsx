@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { HardHat, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
+import { nomeComAbreviacao } from "@/lib/constants";
 
 export function Header() {
   const { usuario, logout } = useAuth();
@@ -32,7 +33,9 @@ export function Header() {
         {usuario && (
           <div className="flex items-center gap-3">
             <div className="hidden text-right md:block">
-              <p className="text-sm font-medium">{usuario.nome}</p>
+              <p className="text-sm font-medium">
+                {nomeComAbreviacao(usuario.nome, usuario.perfil, usuario.tituloProfissional)}
+              </p>
               <p className="text-xs text-white/70">{usuario.numeroRegistro ?? usuario.cpf}</p>
             </div>
             <Button

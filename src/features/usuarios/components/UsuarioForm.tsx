@@ -27,13 +27,23 @@ const badgeVarianteTipo: Record<TipoUsuario, "default" | "ativa" | "secondary"> 
   proprietario: "secondary",
 };
 
-export function UsuarioForm() {
+// somenteProprietario: usado quando quem cadastra é um Engenheiro/Arquiteto —
+// o tipo fica travado em Proprietário (o backend também valida isso).
+export function UsuarioForm({ somenteProprietario = false }: { somenteProprietario?: boolean }) {
   const navigate = useNavigate();
+  // Engenheiro não acessa a lista de usuários; volta para a abertura de obra,
+  // que é onde ele precisa do proprietário recém-cadastrado.
+  const destinoAposSalvar = somenteProprietario ? "/obras/nova" : "/usuarios";
+  const tiposDisponiveis = somenteProprietario
+    ? TIPOS_USUARIO.filter((t) => t.value === "proprietario")
+    : TIPOS_USUARIO;
   const [nome, setNome] = useState("");
   const [cpf, setCpf] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
-  const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario | "">("");
+  const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario | "">(
+    somenteProprietario ? "proprietario" : "",
+  );
   const [especialidade, setEspecialidade] = useState("");
   const [registro, setRegistro] = useState("");
   const [senhaSecreta, setSenhaSecreta] = useState("");
@@ -64,7 +74,7 @@ export function UsuarioForm() {
         `Usuário ${resultado.usuario.nome} cadastrado. Senha provisória: ${resultado.senhaProvisoria} (em produção isso vai por e-mail).`,
         { duration: 10000 },
       );
-      navigate({ to: "/usuarios" });
+      navigate({ to: destinoAposSalvar });
     },
     onError: (err) => {
       // A senha secreta de Administrador é validada no servidor — o
@@ -158,6 +168,7 @@ export function UsuarioForm() {
               <Label>Tipo de usuário *</Label>
               <Select
                 value={tipoUsuario}
+                disabled={somenteProprietario}
                 onValueChange={(v) => {
                   setTipoUsuario(v as TipoUsuario);
                   setEspecialidade("");
@@ -168,7 +179,7 @@ export function UsuarioForm() {
                   <SelectValue placeholder="Selecione o tipo de usuário" />
                 </SelectTrigger>
                 <SelectContent>
-                  {TIPOS_USUARIO.map((t) => (
+                  {tiposDisponiveis.map((t) => (
                     <SelectItem key={t.value} value={t.value}>
                       {t.label}
                     </SelectItem>
@@ -274,7 +285,7 @@ export function UsuarioForm() {
           type="button"
           variant="outline"
           className="min-h-11"
-          onClick={() => navigate({ to: "/usuarios" })}
+          onClick={() => navigate({ to: destinoAposSalvar })}
         >
           Cancelar
         </Button>

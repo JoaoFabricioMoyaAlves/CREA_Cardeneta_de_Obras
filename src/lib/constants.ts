@@ -80,12 +80,10 @@ export const ATIVIDADES_TECNICAS = [
 ] as const;
 
 export const POSICOES_OBRA = [
-  "Início de obra",
-  "Em andamento — até 25%",
-  "Em andamento — até 50%",
-  "Em andamento — até 75%",
-  "Acabamento final",
-  "Obra concluída",
+  "De acordo com o projeto",
+  "Em desacordo com o projeto",
+  "Em andamento",
+  "Paralisada",
 ] as const;
 
 export const TIPOS_EDIFICACAO = [

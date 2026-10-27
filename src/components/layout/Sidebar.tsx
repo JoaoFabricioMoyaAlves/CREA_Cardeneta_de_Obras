@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { FolderOpen, LayoutDashboard, PlusCircle, ShieldCheck, Users } from "lucide-react";
+import { FolderOpen, LayoutDashboard, PlusCircle, ShieldCheck, UserPlus, Users } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 
 export function Sidebar() {
@@ -7,7 +7,12 @@ export function Sidebar() {
 
   const itens = [
     { to: "/dashboard", label: "Cadernetas", icon: LayoutDashboard },
-    ...(perfil === "engenheiro" ? [{ to: "/obras/nova", label: "Nova obra", icon: PlusCircle }] : []),
+    ...(perfil === "engenheiro"
+      ? [
+          { to: "/obras/nova", label: "Nova obra", icon: PlusCircle },
+          { to: "/usuarios/novo", label: "Novo proprietário", icon: UserPlus },
+        ]
+      : []),
     ...(perfil === "administrador"
       ? [
           { to: "/usuarios", label: "Usuários", icon: Users },

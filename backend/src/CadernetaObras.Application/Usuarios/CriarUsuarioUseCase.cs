@@ -35,8 +35,14 @@ public class CriarUsuarioUseCase
 
     public async Task<UsuarioCriadoResponse> ExecutarAsync(CriarUsuarioRequest request, CancellationToken ct = default)
     {
-        if (_currentUser.Perfil != PerfilUsuario.Administrador)
-            throw new ForbiddenException("Somente o Administrador do CREA pode cadastrar usuários.");
+        // Engenheiro/Arquiteto pode cadastrar o proprietário da obra que vai
+        // abrir; demais perfis continuam exclusivos do Administrador.
+        var podeCadastrar = _currentUser.Perfil == PerfilUsuario.Administrador
+            || (_currentUser.Perfil == PerfilUsuario.Engenheiro && request.Perfil == PerfilUsuario.Proprietario);
+        if (!podeCadastrar)
+            throw new ForbiddenException(_currentUser.Perfil == PerfilUsuario.Engenheiro
+                ? "Engenheiro/Arquiteto só pode cadastrar usuários do tipo Proprietário."
+                : "Somente o Administrador do CREA pode cadastrar usuários.");
 
         if (await _usuarios.ObterPorCpfAsync(request.Cpf, ct) is not null)
             throw new ValidationAppException("Já existe um usuário cadastrado com este CPF.");

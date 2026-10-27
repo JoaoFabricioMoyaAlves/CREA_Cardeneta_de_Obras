@@ -8,9 +8,20 @@ export function NovoUsuarioPage() {
 
   if (carregando || !perfil) return null;
 
+  if (perfil === "engenheiro") {
+    return (
+      <PageContainer
+        titulo="Cadastrar proprietário"
+        descricao="Cadastre o proprietário da obra. Engenheiros e arquitetos só podem cadastrar usuários do tipo Proprietário."
+      >
+        <UsuarioForm somenteProprietario />
+      </PageContainer>
+    );
+  }
+
   if (perfil !== "administrador") {
     return (
-      <AcessoRestrito mensagem="Somente o Administrador do CREA pode cadastrar novos usuários." />
+      <AcessoRestrito mensagem="Somente o Administrador do CREA ou um Engenheiro/Arquiteto podem cadastrar novos usuários." />
     );
   }
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import { AlertCircle, HardHat, Loader2 } from "lucide-react";
 
 export function LoginForm() {
   const navigate = useNavigate();
+  const { redirect } = useSearch({ from: "/" });
   const { login } = useAuth();
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
@@ -27,7 +28,8 @@ export function LoginForm() {
     setCarregando(true);
     try {
       await login(cpf, senha);
-      navigate({ to: "/dashboard" });
+      if (redirect) navigate({ href: redirect });
+      else navigate({ to: "/dashboard" });
     } catch (err) {
       setErro(
         err instanceof ApiError ? err.message : "Não foi possível entrar. Verifique sua conexão.",

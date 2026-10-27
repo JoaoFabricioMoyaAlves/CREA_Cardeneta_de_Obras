@@ -78,7 +78,9 @@ export function useRequireAuth() {
 
   useEffect(() => {
     if (!carregando && !usuario) {
-      navigate({ to: "/" });
+      // Guarda a página pedida (ex.: link de "assine" do e-mail) para voltar a ela após o login.
+      const destino = window.location.pathname + window.location.search;
+      navigate({ to: "/", search: destino === "/" ? {} : { redirect: destino } });
     }
   }, [carregando, usuario, navigate]);
 

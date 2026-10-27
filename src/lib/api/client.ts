@@ -1,4 +1,12 @@
-const API_BASE_URL = import.meta.env["VITE_API_URL"] ?? "http://localhost:5282";
+// Sem VITE_API_URL no build: em localhost usa a API de desenvolvimento; em
+// qualquer outro domínio usa o próprio domínio (o Caddy encaminha /api/* para
+// a API). Antes o fallback era sempre localhost, o que quebrava a produção
+// sempre que o build era gerado sem a variável.
+const API_BASE_URL =
+  import.meta.env["VITE_API_URL"] ??
+  (typeof window !== "undefined" && !["localhost", "127.0.0.1"].includes(window.location.hostname)
+    ? ""
+    : "http://localhost:5282");
 const TOKEN_STORAGE_KEY = "caderneta_token";
 
 export class ApiError extends Error {

@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
+using CadernetaObras.Application.Auth;
 using CadernetaObras.Application.Common;
+using CadernetaObras.Application.Notificacoes;
 using CadernetaObras.Application.Interfaces;
 using CadernetaObras.Domain.Entities;
 using CadernetaObras.Domain.Enums;
@@ -16,6 +18,8 @@ public class CriarUsuarioUseCase
     private readonly ICurrentUserService _currentUser;
     private readonly IConfiguration _configuration;
     private readonly IAuditLogger _auditLogger;
+    private readonly ITokenSenhaRepository _tokens;
+    private readonly INotificacaoService _notificacoes;
 
     public CriarUsuarioUseCase(
         IUsuarioRepository usuarios,
@@ -23,7 +27,9 @@ public class CriarUsuarioUseCase
         IPasswordHasher passwordHasher,
         ICurrentUserService currentUser,
         IConfiguration configuration,
-        IAuditLogger auditLogger)
+        IAuditLogger auditLogger,
+        ITokenSenhaRepository tokens,
+        INotificacaoService notificacoes)
     {
         _usuarios = usuarios;
         _unitOfWork = unitOfWork;
@@ -31,6 +37,8 @@ public class CriarUsuarioUseCase
         _currentUser = currentUser;
         _configuration = configuration;
         _auditLogger = auditLogger;
+        _tokens = tokens;
+        _notificacoes = notificacoes;
     }
 
     public async Task<UsuarioCriadoResponse> ExecutarAsync(CriarUsuarioRequest request, CancellationToken ct = default)
@@ -80,15 +88,22 @@ public class CriarUsuarioUseCase
             CriadoEm = DateTime.UtcNow,
         };
 
+        var (tokenPrimeiroAcesso, token) = TokenSenhaGerador.Criar(usuario.Id, FinalidadeTokenSenha.PrimeiroAcesso);
+
         _usuarios.Adicionar(usuario);
+        _tokens.Adicionar(tokenPrimeiroAcesso);
         _auditLogger.Registrar("UsuarioCriado", _currentUser.UsuarioId, "Usuario", usuario.Id.ToString(), $"Perfil: {usuario.Perfil}");
         await _unitOfWork.SalvarAsync(ct);
+
+        _notificacoes.PrimeiroAcesso(usuario, token);
 
         var response = new UsuarioResponse(
             usuario.Id, usuario.Nome, usuario.Cpf, usuario.Email, usuario.Telefone,
             usuario.Perfil.ToString(), usuario.TituloProfissional, usuario.NumeroRegistro);
 
-        return new UsuarioCriadoResponse(response, senhaProvisoria);
+        // Com e-mail ativo o próprio usuário cria a senha pelo link; a senha
+        // provisória só é devolvida (para quem cadastrou) quando não há SMTP.
+        return new UsuarioCriadoResponse(response, _notificacoes.EmailAtivo ? null : senhaProvisoria);
     }
 
     private static string GerarSenhaProvisoria()

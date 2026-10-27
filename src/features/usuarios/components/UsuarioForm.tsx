@@ -70,8 +70,11 @@ export function UsuarioForm({ somenteProprietario = false }: { somenteProprietar
   const mutation = useMutation({
     mutationFn: criarUsuario,
     onSuccess: (resultado) => {
+      // Com e-mail ativo a senha não volta: o usuário cria a própria pelo link.
       toast.success(
-        `Usuário ${resultado.usuario.nome} cadastrado. Senha provisória: ${resultado.senhaProvisoria} (em produção isso vai por e-mail).`,
+        resultado.senhaProvisoria
+          ? `Usuário ${resultado.usuario.nome} cadastrado. Senha provisória: ${resultado.senhaProvisoria} (envio de e-mail desligado neste ambiente).`
+          : `Usuário ${resultado.usuario.nome} cadastrado. Enviamos para ${resultado.usuario.email} um link para ele criar a senha de acesso.`,
         { duration: 10000 },
       );
       navigate({ to: destinoAposSalvar });
@@ -266,8 +269,8 @@ export function UsuarioForm({ somenteProprietario = false }: { somenteProprietar
           <div className="flex items-start gap-2 rounded-md border border-border bg-secondary/50 p-3">
             <MailCheck className="mt-0.5 size-4 shrink-0 text-primary" />
             <p className="text-xs text-muted-foreground">
-              O usuário recebe uma senha provisória para o primeiro acesso (hoje exibida na
-              tela ao cadastrar — em produção deve ser enviada por e-mail).
+              O usuário recebe no e-mail informado um link para criar a própria senha de acesso
+              (válido por 72 horas). Se o link expirar, ele pode usar "Esqueci minha senha".
             </p>
           </div>
         </CardContent>

@@ -460,6 +460,44 @@ namespace CadernetaObras.Infrastructure.Persistence.Migrations
                     b.ToTable("termos_conclusao", (string)null);
                 });
 
+            modelBuilder.Entity("CadernetaObras.Domain.Entities.TokenSenha", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiraEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Finalidade")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("UsadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("tokens_senha", (string)null);
+                });
+
             modelBuilder.Entity("CadernetaObras.Domain.Entities.Usuario", b =>
                 {
                     b.Property<Guid>("Id")
@@ -582,6 +620,15 @@ namespace CadernetaObras.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Obra");
+                });
+
+            modelBuilder.Entity("CadernetaObras.Domain.Entities.TokenSenha", b =>
+                {
+                    b.HasOne("CadernetaObras.Domain.Entities.Usuario", null)
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("CadernetaObras.Domain.Entities.Obra", b =>

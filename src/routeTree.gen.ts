@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuditoriaRouteImport } from './routes/auditoria'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as RecuperarSenhaRouteImport } from './routes/recuperar-senha'
+import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as ObrasIdRouteImport } from './routes/obras.$id'
 import { Route as ObrasNovaRouteImport } from './routes/obras.nova'
@@ -40,6 +41,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const RecuperarSenhaRoute = RecuperarSenhaRouteImport.update({
   id: '/recuperar-senha',
   path: '/recuperar-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
+  id: '/redefinir-senha',
+  path: '/redefinir-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UsuariosRoute = UsuariosRouteImport.update({
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/auditoria': typeof AuditoriaRoute
   '/dashboard': typeof DashboardRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/usuarios': typeof UsuariosRoute
   '/obras/$id': typeof ObrasIdRouteWithChildren
   '/obras/nova': typeof ObrasNovaRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/auditoria': typeof AuditoriaRoute
   '/dashboard': typeof DashboardRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/usuarios': typeof UsuariosRoute
   '/obras/nova': typeof ObrasNovaRoute
   '/usuarios/novo': typeof UsuariosNovoRoute
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   '/auditoria': typeof AuditoriaRoute
   '/dashboard': typeof DashboardRoute
   '/recuperar-senha': typeof RecuperarSenhaRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/usuarios': typeof UsuariosRoute
   '/obras/$id': typeof ObrasIdRouteWithChildren
   '/obras/nova': typeof ObrasNovaRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/auditoria'
     | '/dashboard'
     | '/recuperar-senha'
+    | '/redefinir-senha'
     | '/usuarios'
     | '/obras/$id'
     | '/obras/nova'
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/auditoria'
     | '/dashboard'
     | '/recuperar-senha'
+    | '/redefinir-senha'
     | '/usuarios'
     | '/obras/nova'
     | '/usuarios/novo'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/auditoria'
     | '/dashboard'
     | '/recuperar-senha'
+    | '/redefinir-senha'
     | '/usuarios'
     | '/obras/$id'
     | '/obras/nova'
@@ -175,6 +187,7 @@ export interface RootRouteChildren {
   AuditoriaRoute: typeof AuditoriaRoute
   DashboardRoute: typeof DashboardRoute
   RecuperarSenhaRoute: typeof RecuperarSenhaRoute
+  RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   UsuariosRoute: typeof UsuariosRoute
   ObrasIdRoute: typeof ObrasIdRouteWithChildren
   ObrasNovaRoute: typeof ObrasNovaRoute
@@ -209,6 +222,13 @@ declare module '@tanstack/react-router' {
       path: '/recuperar-senha'
       fullPath: '/recuperar-senha'
       preLoaderRoute: typeof RecuperarSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redefinir-senha': {
+      id: '/redefinir-senha'
+      path: '/redefinir-senha'
+      fullPath: '/redefinir-senha'
+      preLoaderRoute: typeof RedefinirSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/usuarios': {
@@ -292,6 +312,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuditoriaRoute: AuditoriaRoute,
   DashboardRoute: DashboardRoute,
   RecuperarSenhaRoute: RecuperarSenhaRoute,
+  RedefinirSenhaRoute: RedefinirSenhaRoute,
   UsuariosRoute: UsuariosRoute,
   ObrasIdRoute: ObrasIdRouteWithChildren,
   ObrasNovaRoute: ObrasNovaRoute,

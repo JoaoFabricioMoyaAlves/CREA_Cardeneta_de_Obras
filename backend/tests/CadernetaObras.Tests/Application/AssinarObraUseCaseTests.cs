@@ -1,6 +1,7 @@
 using CadernetaObras.Application.Assinaturas;
 using CadernetaObras.Application.Common;
 using CadernetaObras.Application.Interfaces;
+using CadernetaObras.Application.Notificacoes;
 using CadernetaObras.Domain.Entities;
 using CadernetaObras.Domain.Enums;
 using CadernetaObras.Domain.Exceptions;
@@ -21,6 +22,7 @@ public class AssinarObraUseCaseTests
     private readonly Mock<ICurrentUserService> _currentUser = new();
     private readonly Mock<IAuditLogger> _auditLogger = new();
     private readonly Mock<ITimestampAuthorityService> _tsa = new();
+    private readonly Mock<INotificacaoService> _notificacoes = new();
 
     private Obra CriarObraPendente() => new()
     {
@@ -46,7 +48,7 @@ public class AssinarObraUseCaseTests
 
         return new AssinarObraUseCase(
             _obraRepo.Object, _usuarioRepo.Object, _unitOfWork.Object, _hashService.Object,
-            _currentUser.Object, _auditLogger.Object, _tsa.Object);
+            _currentUser.Object, _auditLogger.Object, _tsa.Object, _notificacoes.Object);
     }
 
     [Fact]
@@ -66,6 +68,10 @@ public class AssinarObraUseCaseTests
         Assert.Equal(PapelAssinatura.Engenheiro, assinatura.Papel);
         Assert.Equal("127.0.0.1", assinatura.Ip);
         Assert.Equal(HashFixo, assinatura.CodHash);
+        // Engenheiro assinou primeiro: proprietário é avisado de que só falta ele.
+        _notificacoes.Verify(n => n.EngenheiroAssinou(
+            It.Is<Usuario>(u => u.Id == _proprietarioId), It.Is<Usuario>(u => u.Id == _engenheiroId),
+            obra, DocumentoParaAssinar.AberturaObra, "/obras/1"), Times.Once);
     }
 
     [Fact]
@@ -87,6 +93,9 @@ public class AssinarObraUseCaseTests
 
         Assert.Equal("Ativa", resultado.Status);
         Assert.Equal(2, obra.Assinaturas.Count);
+        // Proprietário já tinha assinado: não há o que cobrar dele.
+        _notificacoes.Verify(n => n.EngenheiroAssinou(
+            It.IsAny<Usuario>(), It.IsAny<Usuario>(), It.IsAny<Obra>(), It.IsAny<DocumentoParaAssinar>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]

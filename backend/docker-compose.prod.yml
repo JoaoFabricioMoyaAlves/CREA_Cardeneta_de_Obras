@@ -64,6 +64,14 @@ services:
       Bootstrap__AdminEmail: ${BOOTSTRAP_ADMIN_EMAIL}
       Bootstrap__AdminTelefone: ${BOOTSTRAP_ADMIN_TELEFONE}
       Cors__FrontendOrigins__0: "https://crea.joaofabricio.com"
+      App__FrontendUrl: "https://crea.joaofabricio.com"
+      Email__Host: ${SMTP_HOST}
+      Email__Porta: ${SMTP_PORT:-587}
+      Email__Seguranca: ${SMTP_SEGURANCA:-StartTls}
+      Email__Usuario: ${SMTP_USER}
+      Email__Senha: ${SMTP_PASSWORD}
+      Email__RemetenteEmail: ${SMTP_FROM}
+      Email__RemetenteNome: "Caderneta de Obras Digital"
     ports:
       - "127.0.0.1:5100:8080"
     depends_on:

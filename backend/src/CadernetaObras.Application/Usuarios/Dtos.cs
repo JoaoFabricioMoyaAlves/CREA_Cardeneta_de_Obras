@@ -26,7 +26,7 @@ public record UsuarioResponse(
     string? NumeroRegistro
 );
 
-// Retornado só na criação — em produção isso deveria ser enviado por e-mail
-// ao usuário, nunca devolvido na resposta da API. Mantido aqui só para
-// permitir testar o fluxo de ponta a ponta sem um provedor de e-mail configurado.
-public record UsuarioCriadoResponse(UsuarioResponse Usuario, string SenhaProvisoria);
+// SenhaProvisoria só vem preenchida quando não há SMTP configurado (ex.:
+// ambiente local). Com e-mail ativo é null: o usuário recebe um link de
+// primeiro acesso e cria a própria senha.
+public record UsuarioCriadoResponse(UsuarioResponse Usuario, string? SenhaProvisoria);

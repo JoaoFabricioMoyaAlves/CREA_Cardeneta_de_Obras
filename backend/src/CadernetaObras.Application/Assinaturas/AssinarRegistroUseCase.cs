@@ -1,6 +1,7 @@
 using System.Globalization;
 using CadernetaObras.Application.Common;
 using CadernetaObras.Application.Interfaces;
+using CadernetaObras.Application.Notificacoes;
 using CadernetaObras.Application.Registros;
 using CadernetaObras.Domain.Entities;
 using CadernetaObras.Domain.Enums;
@@ -19,11 +20,13 @@ public class AssinarRegistroUseCase
     private readonly ICurrentUserService _currentUser;
     private readonly IAuditLogger _auditLogger;
     private readonly ITimestampAuthorityService _tsa;
+    private readonly INotificacaoService _notificacoes;
 
     public AssinarRegistroUseCase(
         IRelatoVisitaRepository registros, IObraRepository obras, IUsuarioRepository usuarios,
         IUnitOfWork unitOfWork, IHashService hashService, ICurrentUserService currentUser,
-        IAuditLogger auditLogger, ITimestampAuthorityService tsa)
+        IAuditLogger auditLogger, ITimestampAuthorityService tsa,
+        INotificacaoService notificacoes)
     {
         _registros = registros;
         _obras = obras;
@@ -33,6 +36,7 @@ public class AssinarRegistroUseCase
         _currentUser = currentUser;
         _auditLogger = auditLogger;
         _tsa = tsa;
+        _notificacoes = notificacoes;
     }
 
     public async Task<RegistroResponse> ExecutarAsync(int registroId, CancellationToken ct = default)
@@ -79,6 +83,10 @@ public class AssinarRegistroUseCase
 
         var profissional = await _usuarios.ObterPorIdAsync(obra.IdProfissional, ct);
         var proprietario = await _usuarios.ObterPorIdAsync(obra.IdProprietario, ct);
+
+        // Engenheiro assinou e o proprietário ainda não: avisa que só falta ele.
+        if (papel == PapelAssinatura.Engenheiro && !assinouProprietario && proprietario is not null && profissional is not null)
+            _notificacoes.EngenheiroAssinou(proprietario, profissional, obra, DocumentoParaAssinar.RelatoVisita, $"/obras/{obra.Id}/registros/{registro.Id}");
         return RegistroMapper.ToResponse(registro, profissional!, proprietario!);
     }
 

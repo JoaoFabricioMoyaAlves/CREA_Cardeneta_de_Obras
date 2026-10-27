@@ -38,6 +38,16 @@ services:
       timeout: 5s
       retries: 10
 
+  # Caixa de e-mail falsa para desenvolvimento: tudo que a API envia aparece
+  # em http://localhost:8025 (nada sai para a internet).
+  mailpit:
+    image: axllent/mailpit:v1.27
+    container_name: caderneta-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Interface web
+
 volumes:
   postgres_data:
   minio_data:

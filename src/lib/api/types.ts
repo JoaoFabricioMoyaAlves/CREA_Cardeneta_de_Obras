@@ -37,7 +37,8 @@ export type UsuarioResponse = {
 
 export type UsuarioCriadoResponse = {
   usuario: UsuarioResponse;
-  senhaProvisoria: string;
+  // null quando o e-mail está ativo: o usuário recebe o link de primeiro acesso.
+  senhaProvisoria: string | null;
 };
 
 export type AssinaturaResumo = {

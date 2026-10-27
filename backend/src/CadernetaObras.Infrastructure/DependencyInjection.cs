@@ -2,6 +2,7 @@ using CadernetaObras.Application.Interfaces;
 using CadernetaObras.Domain.Interfaces;
 using CadernetaObras.Infrastructure.Auditoria;
 using CadernetaObras.Infrastructure.Auth;
+using CadernetaObras.Infrastructure.Email;
 using CadernetaObras.Infrastructure.Persistence;
 using CadernetaObras.Infrastructure.Persistence.Repositories;
 using CadernetaObras.Infrastructure.Services;
@@ -37,6 +38,12 @@ public static class DependencyInjection
         services.AddSingleton<IStorageService, MinioStorageService>();
         services.AddSingleton<IPdfService, QuestPdfService>();
         services.AddHttpClient<ITimestampAuthorityService, Rfc3161TimestampService>();
+
+        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
+        services.AddSingleton<FilaEmailService>();
+        services.AddSingleton<IEmailService>(sp => sp.GetRequiredService<FilaEmailService>());
+        services.AddHostedService<EmailDispatcher>();
+        services.AddScoped<ITokenSenhaRepository, TokenSenhaRepository>();
 
         return services;
     }

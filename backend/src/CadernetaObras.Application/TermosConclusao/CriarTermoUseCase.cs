@@ -1,5 +1,6 @@
 using CadernetaObras.Application.Common;
 using CadernetaObras.Application.Interfaces;
+using CadernetaObras.Application.Notificacoes;
 using CadernetaObras.Application.Obras;
 using CadernetaObras.Domain.Entities;
 using CadernetaObras.Domain.Enums;
@@ -15,11 +16,14 @@ public class CriarTermoUseCase
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUser;
     private readonly IAuditLogger _auditLogger;
+    private readonly INotificacaoService _notificacoes;
 
     public CriarTermoUseCase(
         ITermoConclusaoRepository termos, IObraRepository obras, IUsuarioRepository usuarios,
-        IUnitOfWork unitOfWork, ICurrentUserService currentUser, IAuditLogger auditLogger)
+        IUnitOfWork unitOfWork, ICurrentUserService currentUser, IAuditLogger auditLogger,
+        INotificacaoService notificacoes)
     {
+        _notificacoes = notificacoes;
         _termos = termos;
         _obras = obras;
         _usuarios = usuarios;
@@ -58,6 +62,10 @@ public class CriarTermoUseCase
 
         _auditLogger.Registrar("TermoConclusaoCriado", _currentUser.UsuarioId, "TermoConclusao", termo.Id.ToString(), $"ObraId: {obra.Id}");
         await _unitOfWork.SalvarAsync(ct);
+
+        var profissional = await _usuarios.ObterPorIdAsync(obra.IdProfissional, ct);
+        var proprietario = await _usuarios.ObterPorIdAsync(obra.IdProprietario, ct);
+        _notificacoes.DocumentoCriado(proprietario!, profissional!, obra, DocumentoParaAssinar.TermoConclusao, $"/obras/{obra.Id}");
 
         return new TermoResponse(termo.Id, termo.ObraId, termo.DataConclusao, termo.Declaracao, termo.Status.ToString(), []);
     }

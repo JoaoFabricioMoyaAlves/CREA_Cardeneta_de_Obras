@@ -1,5 +1,6 @@
 using CadernetaObras.Application.Common;
 using CadernetaObras.Application.Interfaces;
+using CadernetaObras.Application.Notificacoes;
 using CadernetaObras.Domain.Entities;
 using CadernetaObras.Domain.Enums;
 using CadernetaObras.Domain.Interfaces;
@@ -13,11 +14,13 @@ public class CriarObraUseCase
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUser;
     private readonly IAuditLogger _auditLogger;
+    private readonly INotificacaoService _notificacoes;
 
     public CriarObraUseCase(
         IObraRepository obras, IUsuarioRepository usuarios, IUnitOfWork unitOfWork,
-        ICurrentUserService currentUser, IAuditLogger auditLogger)
+        ICurrentUserService currentUser, IAuditLogger auditLogger, INotificacaoService notificacoes)
     {
+        _notificacoes = notificacoes;
         _obras = obras;
         _usuarios = usuarios;
         _unitOfWork = unitOfWork;
@@ -76,6 +79,8 @@ public class CriarObraUseCase
         obra.NumeroCaderneta = $"CAD-{request.DataReciboAbertura.Year}-{obra.Id:D4}";
         _auditLogger.Registrar("ObraCriada", _currentUser.UsuarioId, "Obra", obra.Id.ToString(), obra.NumeroCaderneta);
         await _unitOfWork.SalvarAsync(ct);
+
+        _notificacoes.DocumentoCriado(proprietario, profissional, obra, DocumentoParaAssinar.AberturaObra, $"/obras/{obra.Id}");
 
         return ObraMapper.ToResponse(obra, profissional, proprietario);
     }

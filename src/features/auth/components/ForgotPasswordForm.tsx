@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, HardHat, Loader2, MailCheck } from "lucide-react";
+import { solicitarRecuperacaoSenha } from "@/lib/api/auth";
+import { ApiError } from "@/lib/api/client";
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -12,7 +14,7 @@ export function ForgotPasswordForm() {
   const [carregando, setCarregando] = useState(false);
   const [enviado, setEnviado] = useState(false);
 
-  function enviarCodigo(e: React.FormEvent) {
+  async function enviarCodigo(e: React.FormEvent) {
     e.preventDefault();
     setErro(null);
     if (!email.trim()) {
@@ -20,10 +22,15 @@ export function ForgotPasswordForm() {
       return;
     }
     setCarregando(true);
-    setTimeout(() => {
-      setCarregando(false);
+    try {
+      // O servidor responde igual exista ou não o e-mail (não revela quem é cadastrado).
+      await solicitarRecuperacaoSenha(email.trim());
       setEnviado(true);
-    }, 900);
+    } catch (err) {
+      setErro(err instanceof ApiError ? err.message : "Não foi possível enviar agora. Tente novamente.");
+    } finally {
+      setCarregando(false);
+    }
   }
 
   return (
@@ -37,7 +44,7 @@ export function ForgotPasswordForm() {
             Recuperar senha
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Informe seu e-mail cadastrado para receber um código de recuperação
+            Informe seu e-mail cadastrado para receber um link de redefinição de senha
           </p>
         </div>
 
@@ -46,8 +53,8 @@ export function ForgotPasswordForm() {
             <div className="flex items-start gap-3 rounded-md border border-border bg-secondary/60 p-4">
               <MailCheck className="mt-0.5 size-5 shrink-0 text-primary" />
               <p className="text-sm text-foreground">
-                Se o e-mail informado estiver cadastrado, você receberá em instantes um código de
-                recuperação para redefinir sua senha.
+                Se o e-mail informado estiver cadastrado, você receberá em instantes um link para
+                redefinir sua senha. O link vale por 1 hora. Confira também a caixa de spam.
               </p>
             </div>
             <Link
@@ -77,7 +84,7 @@ export function ForgotPasswordForm() {
 
             <Button type="submit" className="min-h-12 w-full text-base" disabled={carregando}>
               {carregando && <Loader2 className="mr-2 size-4 animate-spin" />}
-              {carregando ? "Enviando…" : "Enviar código de recuperação"}
+              {carregando ? "Enviando…" : "Enviar link de redefinição"}
             </Button>
 
             <Link

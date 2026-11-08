@@ -5,7 +5,7 @@ namespace CadernetaObras.Application.Registros;
 
 internal static class RegistroMapper
 {
-    public static RegistroResponse ToResponse(RelatoVisita registro, Usuario profissional, Usuario proprietario)
+    public static List<string> ListarFases(RelatoVisita registro)
     {
         var fases = new List<string>();
         if (registro.FaseServicosPreliminares) fases.Add("Serviços preliminares");
@@ -17,6 +17,12 @@ internal static class RegistroMapper
         if (registro.FaseRevestimento) fases.Add("Revestimento");
         if (registro.FasePintura) fases.Add("Pintura");
         if (registro.FaseServicosComp) fases.Add("Serviços complementares");
+        return fases;
+    }
+
+    public static RegistroResponse ToResponse(RelatoVisita registro, Usuario profissional, Usuario proprietario)
+    {
+        var fases = ListarFases(registro);
 
         var assinaturas = registro.Assinaturas
             .Select(a => new AssinaturaResumoDto(

@@ -68,6 +68,28 @@ public class NotificacaoService : INotificacaoService
             "Assinar agora", $"{_frontendUrl}{caminho}");
     }
 
+    public void AberturaRegistrada(Usuario proprietario, Usuario profissional, Obra obra, string caminho)
+    {
+        Enviar(proprietario, $"Caderneta de obra registrada — {obra.NumeroCaderneta}",
+            $"Olá, {proprietario.Nome}!",
+            [
+                $"{profissional.Nome} registrou a caderneta {obra.NumeroCaderneta} ({obra.LocalObra}, {obra.Cidade}) em seu nome.",
+                "A abertura será assinada pelo responsável técnico e pelo CREA. Você não precisa assinar esta etapa.",
+            ],
+            "Acompanhar caderneta", $"{_frontendUrl}{caminho}");
+    }
+
+    public void AberturaAguardandoAdministrador(Usuario administrador, Usuario profissional, Obra obra, string caminho)
+    {
+        Enviar(administrador, $"Abertura aguardando assinatura do CREA — {obra.NumeroCaderneta}",
+            $"Olá, {administrador.Nome}!",
+            [
+                $"{profissional.Nome} já assinou o termo de abertura da caderneta {obra.NumeroCaderneta} ({obra.LocalObra}, {obra.Cidade}).",
+                "Falta a assinatura de um Administrador do CREA para ativar a obra.",
+            ],
+            "Ver e assinar", $"{_frontendUrl}{caminho}");
+    }
+
     private static (string Nome, string Artigo) Descrever(DocumentoParaAssinar documento) => documento switch
     {
         DocumentoParaAssinar.AberturaObra => ("termo de abertura", "o"),

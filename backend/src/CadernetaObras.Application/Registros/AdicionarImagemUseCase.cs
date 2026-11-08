@@ -34,10 +34,11 @@ public class AdicionarImagemUseCase
         if (_currentUser.Perfil != PerfilUsuario.Engenheiro)
             throw new ForbiddenException("Somente o Engenheiro/Arquiteto/Técnico pode anexar fotos ao registro.");
 
-        var registro = await _registros.ObterPorIdAsync(request.RegistroId, ct)
+        var registro = await _registros.ObterComAssinaturasAsync(request.RegistroId, ct)
             ?? throw new NotFoundException("Registro de visita não encontrado.");
 
-        if (registro.Status != StatusRegistro.PendenteAssinatura)
+        // Foto nova depois da primeira assinatura mudaria o que já foi assinado.
+        if (registro.Status != StatusRegistro.PendenteAssinatura || registro.Assinaturas.Count > 0)
             throw new Domain.Exceptions.EntidadeImutavelException("Registro de visita");
 
         var obra = await _obras.ObterPorIdAsync(registro.ObraId, ct)

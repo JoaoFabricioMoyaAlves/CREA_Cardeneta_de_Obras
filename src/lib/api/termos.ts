@@ -8,7 +8,3 @@ export function obterTermoPorObra(obraId: number) {
 export function criarTermo(obraId: number, dataConclusao: string, declaracao: string) {
   return api.post<TermoResponse>("/api/termos-conclusao", { obraId, dataConclusao, declaracao });
 }
-
-export function assinarTermo(id: number) {
-  return api.post<TermoResponse>(`/api/termos-conclusao/${id}/assinar`);
-}

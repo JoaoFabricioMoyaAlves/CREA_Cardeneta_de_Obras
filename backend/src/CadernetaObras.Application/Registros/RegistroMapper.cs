@@ -30,7 +30,7 @@ internal static class RegistroMapper
                 a.UsuarioId,
                 a.UsuarioId == profissional.Id ? profissional.Nome : proprietario.Nome,
                 a.Data,
-                a.CodHash,
+                a.HashAssinatura ?? a.CodHash,
                 a.TsaToken is not null,
                 a.TsaAutoridade,
                 a.TsaDataHora))

@@ -27,7 +27,7 @@ internal static class ObraMapper
                     ? administrador?.Nome ?? "Administrador do CREA"
                     : a.UsuarioId == profissional.Id ? profissional.Nome : proprietario.Nome,
                 a.Data,
-                a.CodHash,
+                a.HashAssinatura ?? a.CodHash,
                 a.TsaToken is not null,
                 a.TsaAutoridade,
                 a.TsaDataHora))

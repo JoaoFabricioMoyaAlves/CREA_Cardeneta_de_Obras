@@ -34,7 +34,3 @@ export type CriarObraPayload = {
 export function criarObra(payload: CriarObraPayload) {
   return api.post<ObraResponse>("/api/obras", payload);
 }
-
-export function assinarObra(id: number) {
-  return api.post<ObraResponse>(`/api/obras/${id}/assinar`);
-}

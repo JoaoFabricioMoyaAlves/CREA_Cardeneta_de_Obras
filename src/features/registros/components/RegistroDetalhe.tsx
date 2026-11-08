@@ -1,11 +1,11 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FASES_SERVICO, nomeComAbreviacao } from "@/lib/constants";
 import { formatarData } from "@/lib/format";
-import { assinarRegistro, adicionarImagem } from "@/lib/api/registros";
+import { adicionarImagem } from "@/lib/api/registros";
 import { ApiError } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth-context";
 import type { ObraResponse, RegistroResponse } from "@/lib/api/types";
@@ -18,11 +18,14 @@ import { toast } from "sonner";
 export function RegistroDetalhe({ registro, obra }: { registro: RegistroResponse; obra: ObraResponse }) {
   const { usuario, perfil } = useAuth();
   const queryClient = useQueryClient();
-  const [assinandoPapel, setAssinandoPapel] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const ehEngenheiroResponsavel = perfil === "engenheiro" && usuario?.id === obra.profissionalId;
-  const podeAdicionarFoto = ehEngenheiroResponsavel && registro.status === "PendenteAssinatura";
+  // Foto nova depois da primeira assinatura mudaria o que já foi assinado.
+  const podeAdicionarFoto =
+    ehEngenheiroResponsavel &&
+    registro.status === "PendenteAssinatura" &&
+    registro.assinaturas.length === 0;
 
   const nomeProfissional = nomeComAbreviacao(
     obra.nomeProfissional,
@@ -34,18 +37,8 @@ export function RegistroDetalhe({ registro, obra }: { registro: RegistroResponse
   function invalidar() {
     queryClient.invalidateQueries({ queryKey: ["registro", registro.id] });
     queryClient.invalidateQueries({ queryKey: ["registros", obra.id] });
+    queryClient.invalidateQueries({ queryKey: ["documento"] });
   }
-
-  const assinarMutation = useMutation({
-    mutationFn: () => assinarRegistro(registro.id),
-    onSuccess: () => {
-      toast.success("Assinatura registrada.");
-      invalidar();
-    },
-    onError: (err) => {
-      toast.error(err instanceof ApiError ? err.message : "Não foi possível registrar a assinatura.");
-    },
-  });
 
   const uploadMutation = useMutation({
     mutationFn: (arquivo: File) => adicionarImagem(registro.id, arquivo),
@@ -57,15 +50,6 @@ export function RegistroDetalhe({ registro, obra }: { registro: RegistroResponse
       toast.error(err instanceof ApiError ? err.message : "Não foi possível enviar a foto.");
     },
   });
-
-  async function assinar(papel: AssinaturaSlot["papel"]) {
-    setAssinandoPapel(papel);
-    try {
-      await assinarMutation.mutateAsync();
-    } finally {
-      setAssinandoPapel(null);
-    }
-  }
 
   function selecionarArquivo(e: React.ChangeEvent<HTMLInputElement>) {
     const arquivo = e.target.files?.[0];
@@ -220,8 +204,9 @@ export function RegistroDetalhe({ registro, obra }: { registro: RegistroResponse
           <BlocoAssinaturas
             titulo="Assinaturas"
             slots={slots}
-            assinandoPapel={assinandoPapel}
-            onAssinar={assinar}
+            tipo="relato-visita"
+            referenciaId={registro.id}
+            onAssinado={invalidar}
           />
         </CardContent>
       </Card>

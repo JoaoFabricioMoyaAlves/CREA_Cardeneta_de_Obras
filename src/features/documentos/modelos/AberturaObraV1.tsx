@@ -106,7 +106,11 @@ export function AberturaObraV1({ documento }: { documento: DocumentoResponse }) 
         <BlocoAssinaturasDocumento
           documento={documento}
           espacos={[
-            { papel: "Engenheiro", rotulo: "Assinatura do Profissional", nome: d.profissional.nome },
+            {
+              papel: "Engenheiro",
+              rotulo: "Assinatura do Profissional",
+              nome: d.profissional.nome,
+            },
             { papel: "Administrador", rotulo: "Assinatura do CREA (Adamantina)", nome: "" },
           ]}
         />

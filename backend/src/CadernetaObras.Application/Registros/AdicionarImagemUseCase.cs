@@ -32,7 +32,7 @@ public class AdicionarImagemUseCase
     public async Task<ImagemResponse> ExecutarAsync(AdicionarImagemRequest request, CancellationToken ct = default)
     {
         if (_currentUser.Perfil != PerfilUsuario.Engenheiro)
-            throw new ForbiddenException("Somente o Engenheiro/Arquiteto pode anexar fotos ao registro.");
+            throw new ForbiddenException("Somente o Engenheiro/Arquiteto/Técnico pode anexar fotos ao registro.");
 
         var registro = await _registros.ObterPorIdAsync(request.RegistroId, ct)
             ?? throw new NotFoundException("Registro de visita não encontrado.");

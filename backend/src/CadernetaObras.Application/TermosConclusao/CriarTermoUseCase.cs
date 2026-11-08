@@ -35,7 +35,7 @@ public class CriarTermoUseCase
     public async Task<TermoResponse> ExecutarAsync(CriarTermoRequest request, CancellationToken ct = default)
     {
         if (_currentUser.Perfil != PerfilUsuario.Engenheiro)
-            throw new ForbiddenException("Somente o Engenheiro/Arquiteto responsável pode emitir o termo de conclusão.");
+            throw new ForbiddenException("Somente o Engenheiro/Arquiteto/Técnico responsável pode emitir o termo de conclusão.");
 
         var obra = await _obras.ObterPorIdAsync(request.ObraId, ct)
             ?? throw new NotFoundException("Caderneta não encontrada.");

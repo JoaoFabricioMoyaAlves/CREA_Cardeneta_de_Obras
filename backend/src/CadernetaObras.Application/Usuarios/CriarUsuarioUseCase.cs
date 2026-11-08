@@ -43,13 +43,13 @@ public class CriarUsuarioUseCase
 
     public async Task<UsuarioCriadoResponse> ExecutarAsync(CriarUsuarioRequest request, CancellationToken ct = default)
     {
-        // Engenheiro/Arquiteto pode cadastrar o proprietário da obra que vai
+        // Engenheiro/Arquiteto/Técnico pode cadastrar o proprietário da obra que vai
         // abrir; demais perfis continuam exclusivos do Administrador.
         var podeCadastrar = _currentUser.Perfil == PerfilUsuario.Administrador
             || (_currentUser.Perfil == PerfilUsuario.Engenheiro && request.Perfil == PerfilUsuario.Proprietario);
         if (!podeCadastrar)
             throw new ForbiddenException(_currentUser.Perfil == PerfilUsuario.Engenheiro
-                ? "Engenheiro/Arquiteto só pode cadastrar usuários do tipo Proprietário."
+                ? "Engenheiro/Arquiteto/Técnico só pode cadastrar usuários do tipo Proprietário."
                 : "Somente o Administrador do CREA pode cadastrar usuários.");
 
         if (await _usuarios.ObterPorCpfAsync(request.Cpf, ct) is not null)
@@ -62,7 +62,7 @@ public class CriarUsuarioUseCase
             (string.IsNullOrWhiteSpace(request.TituloProfissional) || string.IsNullOrWhiteSpace(request.NumeroRegistro)))
         {
             throw new ValidationAppException(
-                "Para Engenheiro/Arquiteto, informe título profissional e número de registro (CREA/CAU).");
+                "Para Engenheiro/Arquiteto/Técnico, informe título profissional e número de registro (CREA/CAU/CFT).");
         }
 
         if (request.Perfil == PerfilUsuario.Administrador)

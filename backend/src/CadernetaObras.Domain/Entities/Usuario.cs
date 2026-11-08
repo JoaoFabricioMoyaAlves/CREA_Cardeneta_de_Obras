@@ -13,7 +13,7 @@ public class Usuario
     public PerfilUsuario Perfil { get; set; }
 
     // Só preenchido quando Perfil == Engenheiro (inclui Arquitetos — o tipo
-    // granular "Engenheiro/Arquiteto/especialidade" escolhido no cadastro do
+    // granular "Engenheiro/Arquiteto/Técnico/especialidade" escolhido no cadastro do
     // frontend é armazenado aqui como texto livre, ex: "Arquiteto e Urbanista").
     public string? TituloProfissional { get; set; }
     public string? NumeroRegistro { get; set; }

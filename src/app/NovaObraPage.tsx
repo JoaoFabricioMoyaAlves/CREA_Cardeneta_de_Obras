@@ -10,7 +10,7 @@ export function NovaObraPage() {
 
   if (perfil !== "engenheiro") {
     return (
-      <AcessoRestrito mensagem="Somente o Engenheiro/Arquiteto responsável pode abrir novas cadernetas de obra." />
+      <AcessoRestrito mensagem="Somente o Engenheiro/Arquiteto/Técnico responsável pode abrir novas cadernetas de obra." />
     );
   }
 

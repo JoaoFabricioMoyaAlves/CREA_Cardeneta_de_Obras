@@ -6,7 +6,7 @@ import { Mail, Phone, ShieldCheck } from "lucide-react";
 
 const perfilInfo: Record<PerfilApi, { label: string; variant: "default" | "ativa" | "secondary" }> = {
   Administrador: { label: "Administrador (CREA)", variant: "default" },
-  Engenheiro: { label: "Engenheiro/Arquiteto", variant: "ativa" },
+  Engenheiro: { label: "Engenheiro/Arquiteto/Técnico", variant: "ativa" },
   Proprietario: { label: "Proprietário", variant: "secondary" },
 };
 

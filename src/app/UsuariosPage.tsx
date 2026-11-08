@@ -29,7 +29,7 @@ export function UsuariosPage() {
   return (
     <PageContainer
       titulo="Usuários"
-      descricao="Administradores, engenheiros/arquitetos e proprietários com acesso ao sistema."
+      descricao="Administradores, engenheiros/arquitetos/técnicos e proprietários com acesso ao sistema."
       acoes={
         <Button asChild variant="destaque" className="min-h-12 px-6 text-base">
           <Link to="/usuarios/novo">

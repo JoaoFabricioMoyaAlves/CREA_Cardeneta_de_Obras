@@ -104,4 +104,29 @@ public class CriarUsuarioUseCaseTests
 
         Assert.Equal("Engenheiro", resultado.Usuario.Perfil);
     }
+
+    private static CriarUsuarioRequest RequestTecnico(string? cft) => new(
+        "Fulano", "123.456.789-00", "fulano@teste.com", "(11) 99999-9999", PerfilUsuario.Engenheiro,
+        "Técnico", cft, null);
+
+    [Fact]
+    public async Task Administrador_PodeCadastrarTecnico_ComPerfilDeEngenheiroECft()
+    {
+        var resultado = await CriarUseCase(PerfilUsuario.Administrador).ExecutarAsync(RequestTecnico("CFT 123"));
+
+        Assert.Equal("Engenheiro", resultado.Usuario.Perfil);
+        Assert.Equal("Técnico", resultado.Usuario.TituloProfissional);
+        Assert.Equal("CFT 123", resultado.Usuario.NumeroRegistro);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("   ")]
+    public async Task Tecnico_SemCft_NaoPodeSerCadastrado(string? cft)
+    {
+        var useCase = CriarUseCase(PerfilUsuario.Administrador);
+
+        await Assert.ThrowsAsync<ValidationAppException>(() => useCase.ExecutarAsync(RequestTecnico(cft)));
+        _usuarioRepo.Verify(r => r.Adicionar(It.IsAny<Usuario>()), Times.Never);
+    }
 }

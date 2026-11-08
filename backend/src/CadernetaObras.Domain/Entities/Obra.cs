@@ -11,7 +11,7 @@ public class Obra
     // formato de exibição.
     public string NumeroCaderneta { get; set; } = string.Empty;
 
-    // Nulo porque a obra é criada pelo próprio Engenheiro/Arquiteto responsável
+    // Nulo porque a obra é criada pelo próprio Engenheiro/Arquiteto/Técnico responsável
     // (o Administrador do CREA só observa/monitora, não cria mais cadernetas).
     public Guid? IdAdministrador { get; set; }
     public Guid IdProfissional { get; set; }

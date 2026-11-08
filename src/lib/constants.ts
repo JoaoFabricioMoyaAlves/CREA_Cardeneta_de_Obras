@@ -11,17 +11,23 @@ export const CORES = {
 export type Perfil = "administrador" | "engenheiro" | "proprietario";
 
 // Tipo de usuário exibido no CADASTRO (mais granular que o Perfil de acesso/RBAC
-// acima). Engenheiro e Arquiteto têm as mesmas permissões no sistema — ambos
-// mapeiam para o perfil "engenheiro" — mas são escolhidos como opções
-// separadas aqui porque exigem título profissional e registro diferentes.
-export type TipoUsuario = "administrador" | "engenheiro" | "arquiteto" | "proprietario";
+// acima). Engenheiro, Arquiteto e Técnico têm as mesmas permissões no sistema —
+// os três mapeiam para o perfil "engenheiro" — mas são escolhidos como opções
+// separadas aqui porque exigem título profissional e registro diferentes
+// (CREA, CAU e CFT).
+export type TipoUsuario = "administrador" | "engenheiro" | "arquiteto" | "tecnico" | "proprietario";
 
 export const TIPOS_USUARIO: { value: TipoUsuario; label: string }[] = [
   { value: "administrador", label: "Administrador (CREA)" },
   { value: "engenheiro", label: "Engenheiro" },
   { value: "arquiteto", label: "Arquiteto" },
+  { value: "tecnico", label: "Técnico" },
   { value: "proprietario", label: "Proprietário" },
 ];
+
+// Títulos fixos gravados no cadastro de quem não escolhe especialidade.
+export const TITULO_ARQUITETO = "Arquiteto e Urbanista";
+export const TITULO_TECNICO = "Técnico";
 
 export const ESPECIALIDADES_ENGENHARIA = [
   "Engenheiro Civil",
@@ -39,16 +45,18 @@ export const ESPECIALIDADES_ARQUITETURA = [
   "Outro",
 ] as const;
 
-// Perfil de acesso (RBAC) não distingue Engenheiro de Arquiteto — ambos são
-// PerfilUsuario.Engenheiro no backend. A abreviação exibida ao usuário usa o
-// tituloProfissional (que vem de ESPECIALIDADES_ENGENHARIA ou
-// ESPECIALIDADES_ARQUITETURA) só para escolher entre "Eng." e "Arq.".
+// Perfil de acesso (RBAC) não distingue Engenheiro, Arquiteto e Técnico — os três
+// são PerfilUsuario.Engenheiro no backend. A abreviação exibida ao usuário usa o
+// tituloProfissional só para escolher entre "Eng.", "Arq." e "Téc.".
 type PerfilComoTexto = "Administrador" | "Engenheiro" | "Proprietario";
 
 export function abreviarPerfil(perfil: PerfilComoTexto, tituloProfissional?: string | null): string {
   if (perfil === "Administrador") return "Admin.";
   if (perfil === "Proprietario") return "Prop.";
-  const ehArquiteto = (ESPECIALIDADES_ARQUITETURA as readonly string[]).includes(tituloProfissional ?? "");
+  if (tituloProfissional === TITULO_TECNICO) return "Téc.";
+  const ehArquiteto =
+    tituloProfissional === TITULO_ARQUITETO ||
+    (ESPECIALIDADES_ARQUITETURA as readonly string[]).includes(tituloProfissional ?? "");
   return ehArquiteto ? "Arq." : "Eng.";
 }
 

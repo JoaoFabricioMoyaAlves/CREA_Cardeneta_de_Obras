@@ -7,7 +7,7 @@ export const Route = createFileRoute("/usuarios")({
       { title: "Usuários — Caderneta de Obras Digital" },
       {
         name: "description",
-        content: "Gestão de usuários do sistema: administradores, engenheiros/arquitetos e proprietários.",
+        content: "Gestão de usuários do sistema: administradores, engenheiros/arquitetos/técnicos e proprietários.",
       },
       { property: "og:title", content: "Usuários — Caderneta de Obras Digital" },
       {

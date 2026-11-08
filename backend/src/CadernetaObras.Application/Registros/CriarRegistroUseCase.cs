@@ -34,7 +34,7 @@ public class CriarRegistroUseCase
     public async Task<RegistroResponse> ExecutarAsync(CriarRegistroRequest request, CancellationToken ct = default)
     {
         if (_currentUser.Perfil != PerfilUsuario.Engenheiro)
-            throw new ForbiddenException("Somente o Engenheiro/Arquiteto responsável pode lançar registros de visita.");
+            throw new ForbiddenException("Somente o Engenheiro/Arquiteto/Técnico responsável pode lançar registros de visita.");
 
         var obra = await _obras.ObterPorIdAsync(request.ObraId, ct)
             ?? throw new NotFoundException("Caderneta não encontrada.");

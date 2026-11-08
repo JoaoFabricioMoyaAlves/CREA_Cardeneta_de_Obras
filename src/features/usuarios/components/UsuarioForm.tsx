@@ -12,6 +12,8 @@ import {
   ESPECIALIDADES_ARQUITETURA,
   ESPECIALIDADES_ENGENHARIA,
   TIPOS_USUARIO,
+  TITULO_ARQUITETO,
+  TITULO_TECNICO,
   type TipoUsuario,
 } from "@/lib/constants";
 import { criarUsuario } from "@/lib/api/usuarios";
@@ -24,10 +26,11 @@ const badgeVarianteTipo: Record<TipoUsuario, "default" | "ativa" | "secondary"> 
   administrador: "default",
   engenheiro: "ativa",
   arquiteto: "ativa",
+  tecnico: "ativa",
   proprietario: "secondary",
 };
 
-// somenteProprietario: usado quando quem cadastra é um Engenheiro/Arquiteto —
+// somenteProprietario: usado quando quem cadastra é um Engenheiro/Arquiteto/Técnico —
 // o tipo fica travado em Proprietário (o backend também valida isso).
 export function UsuarioForm({ somenteProprietario = false }: { somenteProprietario?: boolean }) {
   const navigate = useNavigate();
@@ -51,7 +54,8 @@ export function UsuarioForm({ somenteProprietario = false }: { somenteProprietar
 
   const ehEngenheiro = tipoUsuario === "engenheiro";
   const ehArquiteto = tipoUsuario === "arquiteto";
-  const ehProfissionalTecnico = ehEngenheiro || ehArquiteto;
+  const ehTecnico = tipoUsuario === "tecnico";
+  const ehProfissionalTecnico = ehEngenheiro || ehArquiteto || ehTecnico;
   const ehAdministrador = tipoUsuario === "administrador";
 
   const especialidadesDisponiveis = ehEngenheiro
@@ -59,13 +63,27 @@ export function UsuarioForm({ somenteProprietario = false }: { somenteProprietar
     : ehArquiteto
       ? ESPECIALIDADES_ARQUITETURA
       : [];
-  const labelRegistro = ehEngenheiro ? "Número de registro (CREA) *" : "Número de registro (CAU) *";
-  const placeholderRegistro = ehEngenheiro ? "CREA-SP 0000000000" : "CAU A000000-0";
+  const labelRegistro = ehEngenheiro
+    ? "Número de registro (CREA) *"
+    : ehTecnico
+      ? "Número de registro (CFT) *"
+      : "Número de registro (CAU) *";
+  const placeholderRegistro = ehEngenheiro
+    ? "CREA-SP 0000000000"
+    : ehTecnico
+      ? "CFT 00000000000"
+      : "CAU A000000-0";
+  const nomeTipoProfissional = ehEngenheiro ? "Engenheiro" : ehTecnico ? "Técnico" : "Arquiteto";
 
-  // O título profissional exibido ao Engenheiro/Arquiteto vira o texto
+  // O título profissional exibido ao Engenheiro/Arquiteto/Técnico vira o texto
   // livre gravado no backend (ver seção 3.5 do ROADMAP — Arquiteto é um
-  // Engenheiro cujo tituloProfissional descreve a especialidade).
-  const tituloProfissional = ehArquiteto ? "Arquiteto e Urbanista" : especialidade;
+  // Engenheiro cujo tituloProfissional descreve a especialidade; o Técnico
+  // segue o mesmo modelo).
+  const tituloProfissional = ehArquiteto
+    ? TITULO_ARQUITETO
+    : ehTecnico
+      ? TITULO_TECNICO
+      : especialidade;
 
   const mutation = useMutation({
     mutationFn: criarUsuario,
@@ -98,6 +116,10 @@ export function UsuarioForm({ somenteProprietario = false }: { somenteProprietar
     }
     if (ehArquiteto && !registro.trim()) {
       setErro("Para Arquiteto, informe também o número de registro (CAU).");
+      return;
+    }
+    if (ehTecnico && !registro.trim()) {
+      setErro("Para Técnico, informe também o número de registro (CFT).");
       return;
     }
     if (ehAdministrador && !senhaSecreta.trim()) {
@@ -204,7 +226,7 @@ export function UsuarioForm({ somenteProprietario = false }: { somenteProprietar
             <>
               <Separator />
               <h2 className="text-lg font-semibold text-primary">
-                Dados profissionais (obrigatórios para {ehEngenheiro ? "Engenheiro" : "Arquiteto"})
+                Dados profissionais (obrigatórios para {nomeTipoProfissional})
               </h2>
               <div className="grid gap-5 md:grid-cols-2">
                 {ehEngenheiro && (

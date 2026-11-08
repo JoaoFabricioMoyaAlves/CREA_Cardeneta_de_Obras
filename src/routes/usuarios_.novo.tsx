@@ -7,7 +7,7 @@ export const Route = createFileRoute("/usuarios_/novo")({
       { title: "Cadastrar usuário — Caderneta de Obras Digital" },
       {
         name: "description",
-        content: "Cadastro de novo usuário: administrador, engenheiro/arquiteto ou proprietário.",
+        content: "Cadastro de novo usuário: administrador, engenheiro/arquiteto/técnico ou proprietário.",
       },
       { property: "og:title", content: "Cadastrar usuário — Caderneta de Obras Digital" },
       {

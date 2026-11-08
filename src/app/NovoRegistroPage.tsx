@@ -39,7 +39,7 @@ export function NovoRegistroPage({ id }: { id: string }) {
 
   if (perfil !== "engenheiro" || usuario.id !== obra.profissionalId) {
     return (
-      <AcessoRestrito mensagem="Somente o Engenheiro/Arquiteto responsável pode lançar registros de visita." />
+      <AcessoRestrito mensagem="Somente o Engenheiro/Arquiteto/Técnico responsável pode lançar registros de visita." />
     );
   }
 

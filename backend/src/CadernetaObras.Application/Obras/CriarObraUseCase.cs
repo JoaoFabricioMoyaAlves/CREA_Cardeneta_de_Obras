@@ -31,10 +31,10 @@ public class CriarObraUseCase
     public async Task<ObraResponse> ExecutarAsync(CriarObraRequest request, CancellationToken ct = default)
     {
         if (_currentUser.Perfil != PerfilUsuario.Engenheiro)
-            throw new ForbiddenException("Somente o Engenheiro/Arquiteto responsável pode criar uma nova obra.");
+            throw new ForbiddenException("Somente o Engenheiro/Arquiteto/Técnico responsável pode criar uma nova obra.");
 
         var profissional = await _usuarios.ObterPorIdAsync(_currentUser.UsuarioId, ct)
-            ?? throw new ValidationAppException("Engenheiro/Arquiteto responsável não encontrado.");
+            ?? throw new ValidationAppException("Engenheiro/Arquiteto/Técnico responsável não encontrado.");
 
         var proprietario = await _usuarios.ObterPorIdAsync(request.ProprietarioId, ct)
             ?? throw new ValidationAppException("Proprietário não encontrado.");

@@ -39,7 +39,7 @@ export function FinalizarCadernetaPage({ id }: { id: string }) {
 
   if (perfil !== "engenheiro" || usuario.id !== obra.profissionalId) {
     return (
-      <AcessoRestrito mensagem="Somente o Engenheiro/Arquiteto responsável pode emitir o termo de conclusão." />
+      <AcessoRestrito mensagem="Somente o Engenheiro/Arquiteto/Técnico responsável pode emitir o termo de conclusão." />
     );
   }
 

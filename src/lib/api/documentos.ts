@@ -76,6 +76,7 @@ export type DocumentoResponse = {
   modeloVersao: number;
   congelado: boolean;
   anteriorAoModelo: boolean;
+  pendente: boolean;
   hashDocumento: string;
   dados: unknown;
   assinaturas: AssinaturaDocumento[];

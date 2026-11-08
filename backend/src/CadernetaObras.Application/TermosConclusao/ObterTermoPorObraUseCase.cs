@@ -44,7 +44,7 @@ public class ObterTermoPorObraUseCase
                 a.UsuarioId,
                 "", // nomes resolvidos no frontend a partir da própria Obra (profissional/proprietário)
                 a.Data,
-                a.CodHash))
+                a.HashAssinatura ?? a.CodHash))
             .ToList();
 
         return new TermoResponse(completo.Id, completo.ObraId, completo.DataConclusao, completo.Declaracao, completo.Status.ToString(), assinaturas);

@@ -19,6 +19,7 @@ public record DocumentoResponse(
     int ModeloVersao,
     bool Congelado,
     bool AnteriorAoModelo,
+    bool Pendente,
     string HashDocumento,
     JsonElement Dados,
     List<AssinaturaDocumentoDto> Assinaturas,

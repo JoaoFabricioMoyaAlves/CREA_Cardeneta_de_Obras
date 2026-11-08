@@ -71,6 +71,7 @@ internal static class DocumentoResponseBuilder
             congelado?.ModeloVersao ?? DocumentoJson.ModeloVersaoAtual,
             congelado is not null,
             congelado is null && contexto.Assinaturas.Count > 0,
+            contexto.Pendente,
             hash,
             json.RootElement.Clone(),
             assinaturas,

@@ -60,20 +60,25 @@ export function ObraDetalhe({
         perfil === "engenheiro" &&
         usuario?.id === obra.profissionalId,
     },
-    {
-      papel: "Administrador",
-      nome: assinaturaAdministrador?.nomeUsuario ?? "Funcionário do CREA de Adamantina",
-      assinadoEm: assinaturaAdministrador?.data ?? null,
-      hash: assinaturaAdministrador?.hash ?? null,
-      carimboTempoVerificado: assinaturaAdministrador?.carimboTempoVerificado,
-      carimboTempoAutoridade: assinaturaAdministrador?.carimboTempoAutoridade,
-      // O responsável técnico assina primeiro; o servidor confere a mesma ordem.
-      podeAssinar:
-        obra.status === "PendenteAssinatura" &&
-        Boolean(assinaturaEngenheiro) &&
-        !assinaturaAdministrador &&
-        perfil === "administrador",
-    },
+    // Abertura concluída pela regra antiga não aguarda o CREA.
+    ...(obra.status === "PendenteAssinatura" || assinaturaAdministrador
+      ? [
+          {
+            papel: "Administrador" as const,
+            nome: assinaturaAdministrador?.nomeUsuario ?? "Funcionário do CREA de Adamantina",
+            assinadoEm: assinaturaAdministrador?.data ?? null,
+            hash: assinaturaAdministrador?.hash ?? null,
+            carimboTempoVerificado: assinaturaAdministrador?.carimboTempoVerificado,
+            carimboTempoAutoridade: assinaturaAdministrador?.carimboTempoAutoridade,
+            // O responsável técnico assina primeiro; o servidor confere a mesma ordem.
+            podeAssinar:
+              obra.status === "PendenteAssinatura" &&
+              Boolean(assinaturaEngenheiro) &&
+              !assinaturaAdministrador &&
+              perfil === "administrador",
+          },
+        ]
+      : []),
     // Aberturas antigas foram assinadas pelo proprietário: a assinatura continua visível.
     ...(assinaturaProprietario
       ? [

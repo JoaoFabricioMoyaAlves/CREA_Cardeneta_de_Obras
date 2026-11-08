@@ -220,6 +220,35 @@ public class DocumentoHandlersTests
     }
 
     [Fact]
+    public async Task Relato_Pendente_FotoIndisponivel_MensagemClara()
+    {
+        var relato = NovoRelato();
+        relato.Imagens.Add(new Imagem { Id = 9, RelatoVisitaId = 3, Name = "foto.jpg", StorageKey = "k" });
+        _storage.Setup(s => s.ObterArquivoAsync("k", It.IsAny<CancellationToken>())).ThrowsAsync(new IOException("sem arquivo"));
+        var handler = Relato();
+        var contexto = await handler.CarregarAsync(3, default);
+
+        var ex = await Assert.ThrowsAsync<ValidationAppException>(() => handler.MontarDadosJsonAsync(contexto, default));
+
+        Assert.Contains("foto.jpg", ex.Message);
+    }
+
+    [Fact]
+    public async Task Relato_JaAssinado_FotoIndisponivel_AindaAbre()
+    {
+        var relato = NovoRelato();
+        relato.Status = StatusRegistro.Assinado;
+        relato.Imagens.Add(new Imagem { Id = 9, RelatoVisitaId = 3, Name = "foto.jpg", StorageKey = "k" });
+        _storage.Setup(s => s.ObterArquivoAsync("k", It.IsAny<CancellationToken>())).ThrowsAsync(new IOException("sem arquivo"));
+        var handler = Relato();
+        var contexto = await handler.CarregarAsync(3, default);
+
+        var json = await handler.MontarDadosJsonAsync(contexto, default);
+
+        Assert.Contains("\"sha256\":null", json);
+    }
+
+    [Fact]
     public async Task Termo_Completo_FinalizaObra()
     {
         var termo = new TermoConclusao { Id = 4, ObraId = 7, DataConclusao = new DateOnly(2026, 11, 10), Declaracao = "Concluída" };

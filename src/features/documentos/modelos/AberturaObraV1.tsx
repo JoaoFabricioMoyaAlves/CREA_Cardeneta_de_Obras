@@ -111,7 +111,16 @@ export function AberturaObraV1({ documento }: { documento: DocumentoResponse }) 
               rotulo: "Assinatura do Profissional",
               nome: d.profissional.nome,
             },
-            { papel: "Administrador", rotulo: "Assinatura do CREA (Adamantina)", nome: "" },
+            // Abertura concluída pela regra antiga não aguarda o CREA.
+            ...(documento.pendente || documento.assinaturas.some((a) => a.papel === "Administrador")
+              ? [
+                  {
+                    papel: "Administrador" as const,
+                    rotulo: "Assinatura do CREA (Adamantina)",
+                    nome: "",
+                  },
+                ]
+              : []),
           ]}
         />
       </div>

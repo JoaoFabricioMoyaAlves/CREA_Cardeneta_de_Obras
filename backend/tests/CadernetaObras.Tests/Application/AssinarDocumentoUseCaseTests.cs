@@ -242,6 +242,27 @@ public class AssinarDocumentoUseCaseTests
     }
 
     [Fact]
+    public async Task Obter_ObraJaAtiva_InformaQueNaoEstaPendente()
+    {
+        _obra.Status = StatusObra.Ativa;
+        LogarComo(_admin);
+
+        var resposta = await Obter().ExecutarAsync(TipoDocumento.AberturaObra, 7);
+
+        Assert.False(resposta.Pendente);
+    }
+
+    [Fact]
+    public async Task Obter_ObraPendente_InformaQueEstaPendente()
+    {
+        LogarComo(_admin);
+
+        var resposta = await Obter().ExecutarAsync(TipoDocumento.AberturaObra, 7);
+
+        Assert.True(resposta.Pendente);
+    }
+
+    [Fact]
     public async Task Obter_UsuarioSemRelacao_403()
     {
         LogarComo(_estranho);

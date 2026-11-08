@@ -62,7 +62,7 @@ public class RelatoVisitaHandler : IDocumentoHandler
 
         var fotos = new List<FotoDocumento>();
         foreach (var imagem in relato.Imagens.OrderBy(i => i.Id))
-            fotos.Add(new FotoDocumento(imagem.Id, imagem.Name, await CalcularHashAsync(imagem.StorageKey, c.Pendente, ct)));
+            fotos.Add(new FotoDocumento(imagem.Id, imagem.Name, await CalcularHashAsync(imagem, c.Pendente, ct)));
 
         return DocumentoJson.Serializar(new DadosRelato(
             c.Obra.NumeroCaderneta,
@@ -80,15 +80,17 @@ public class RelatoVisitaHandler : IDocumentoHandler
     // Em documento pendente, a falha precisa aparecer: congelar sem o hash da
     // foto deixaria a imagem fora do que foi assinado. Em documento já assinado
     // e sem dados congelados, a falha não pode impedir a leitura.
-    private async Task<string?> CalcularHashAsync(string storageKey, bool pendente, CancellationToken ct)
+    private async Task<string?> CalcularHashAsync(Imagem imagem, bool pendente, CancellationToken ct)
     {
         try
         {
-            await using var arquivo = await _storage.ObterArquivoAsync(storageKey, ct);
+            await using var arquivo = await _storage.ObterArquivoAsync(imagem.StorageKey, ct);
             return Convert.ToHexStringLower(await SHA256.HashDataAsync(arquivo, ct));
         }
-        catch (Exception) when (!pendente)
+        catch (Exception) when (!ct.IsCancellationRequested)
         {
+            if (pendente)
+                throw new ValidationAppException($"Não foi possível ler a foto \"{imagem.Name}\". Tente novamente em instantes.");
             return null;
         }
     }

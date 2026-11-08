@@ -18,6 +18,7 @@ import { listarUsuarios } from "@/lib/api/usuarios";
 import { criarObra } from "@/lib/api/obras";
 import { ApiError } from "@/lib/api/client";
 import { dataHojeIso } from "@/lib/format";
+import { ProprietarioSelect } from "./ProprietarioSelect";
 import { AlertCircle, Loader2, Ruler } from "lucide-react";
 import { toast } from "sonner";
 
@@ -41,7 +42,10 @@ export function ObraForm() {
   });
   const [erro, setErro] = useState<string | null>(null);
 
-  const { data: usuarios } = useQuery({ queryKey: ["usuarios"], queryFn: listarUsuarios });
+  const { data: usuarios, isLoading: carregandoUsuarios } = useQuery({
+    queryKey: ["usuarios"],
+    queryFn: listarUsuarios,
+  });
   const proprietarios = usuarios?.filter((u) => u.perfil === "Proprietario") ?? [];
 
   const total = Object.values(areas).reduce((s, v) => s + (parseFloat(v) || 0), 0);
@@ -53,7 +57,7 @@ export function ObraForm() {
   const mutation = useMutation({
     mutationFn: criarObra,
     onSuccess: (obra) => {
-      toast.success(`Caderneta ${obra.numeroCaderneta} criada. Aguardando assinatura do Engenheiro e do Proprietário.`);
+      toast.success(`Caderneta ${obra.numeroCaderneta} criada. Aguardando assinatura do responsável técnico e do Administrador do CREA.`);
       navigate({ to: "/obras/$id", params: { id: String(obra.id) } });
     },
     onError: (err) => {
@@ -98,19 +102,14 @@ export function ObraForm() {
           <h2 className="text-lg font-semibold text-primary">Responsável</h2>
           <div className="grid gap-5 md:grid-cols-2">
             <div className="space-y-2">
-              <Label>Proprietário do imóvel *</Label>
-              <Select value={proprietario} onValueChange={setProprietario}>
-                <SelectTrigger className="min-h-11 w-full">
-                  <SelectValue placeholder="Selecione o proprietário" />
-                </SelectTrigger>
-                <SelectContent>
-                  {proprietarios.map((u) => (
-                    <SelectItem key={u.id} value={u.id}>
-                      {u.nome} — {u.cpf}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="proprietario">Proprietário do imóvel *</Label>
+              <ProprietarioSelect
+                id="proprietario"
+                proprietarios={proprietarios}
+                carregando={carregandoUsuarios}
+                valor={proprietario}
+                onChange={setProprietario}
+              />
             </div>
           </div>
 
@@ -270,9 +269,9 @@ export function ObraForm() {
       <div className="flex items-start gap-2 rounded-md border border-border bg-secondary/50 p-3">
         <AlertCircle className="mt-0.5 size-4 shrink-0 text-primary" />
         <p className="text-xs text-muted-foreground">
-          A caderneta nasce como <strong>Pendente assinatura</strong>. O Engenheiro e o
-          Proprietário assinam depois, cada um logado com sua própria conta, na tela de
-          detalhe da obra.
+          A caderneta nasce como <strong>Pendente assinatura</strong>. O responsável técnico e
+          depois um Administrador do CREA assinam, cada um logado com sua própria conta, na tela
+          de detalhe da obra.
         </p>
       </div>
 

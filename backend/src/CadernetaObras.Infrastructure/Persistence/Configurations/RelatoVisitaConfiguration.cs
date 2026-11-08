@@ -33,6 +33,7 @@ public class AssinaturaRelatoConfiguration : IEntityTypeConfiguration<Assinatura
         b.ToTable("assinaturas_relato");
         b.HasKey(a => a.Id);
         b.Property(a => a.CodHash).HasMaxLength(255).IsRequired();
+        b.Property(a => a.HashAssinatura).HasMaxLength(64);
         b.Property(a => a.Ip).HasMaxLength(45).IsRequired();
         b.Property(a => a.UserAgent).HasMaxLength(500).IsRequired();
         b.Property(a => a.Papel).HasConversion<string>().HasMaxLength(20);

@@ -38,6 +38,10 @@ namespace CadernetaObras.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("Data")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("HashAssinatura")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<string>("Ip")
                         .IsRequired()
                         .HasMaxLength(45)
@@ -92,6 +96,10 @@ namespace CadernetaObras.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime>("Data")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("HashAssinatura")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<string>("Ip")
                         .IsRequired()
@@ -148,6 +156,10 @@ namespace CadernetaObras.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("Data")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("HashAssinatura")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<string>("Ip")
                         .IsRequired()
                         .HasMaxLength(45)
@@ -185,6 +197,45 @@ namespace CadernetaObras.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("assinaturas_termo_conclusao", (string)null);
+                });
+
+            modelBuilder.Entity("CadernetaObras.Domain.Entities.DocumentoAssinavel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DadosJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("HashDocumento")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("ModeloVersao")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ReferenciaId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Tipo", "ReferenciaId")
+                        .IsUnique();
+
+                    b.ToTable("documentos_assinaveis", (string)null);
                 });
 
             modelBuilder.Entity("CadernetaObras.Domain.Entities.Imagem", b =>
@@ -313,6 +364,13 @@ namespace CadernetaObras.Infrastructure.Persistence.Migrations
 
                     b.Property<DateOnly>("DataReciboAbertura")
                         .HasColumnType("date");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasDefaultValue("SP");
 
                     b.Property<Guid?>("IdAdministrador")
                         .HasColumnType("uuid");

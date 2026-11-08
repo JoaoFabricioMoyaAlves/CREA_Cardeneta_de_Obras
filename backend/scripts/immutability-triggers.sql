@@ -119,3 +119,11 @@ DROP TRIGGER IF EXISTS trg_bloquear_alteracao_logs_auditoria ON logs_auditoria;
 CREATE TRIGGER trg_bloquear_alteracao_logs_auditoria
     BEFORE UPDATE OR DELETE ON logs_auditoria
     FOR EACH ROW EXECUTE FUNCTION bloquear_alteracao_assinatura();
+
+-- =====================================================================
+-- Documentos congelados na primeira assinatura: também append-only.
+-- =====================================================================
+DROP TRIGGER IF EXISTS trg_bloquear_alteracao_documentos_assinaveis ON documentos_assinaveis;
+CREATE TRIGGER trg_bloquear_alteracao_documentos_assinaveis
+    BEFORE UPDATE OR DELETE ON documentos_assinaveis
+    FOR EACH ROW EXECUTE FUNCTION bloquear_alteracao_assinatura();

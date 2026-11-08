@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<AssinaturaTermoConclusao> AssinaturasTermoConclusao => Set<AssinaturaTermoConclusao>();
     public DbSet<LogAuditoria> LogsAuditoria => Set<LogAuditoria>();
     public DbSet<TokenSenha> TokensSenha => Set<TokenSenha>();
+    public DbSet<DocumentoAssinavel> DocumentosAssinaveis => Set<DocumentoAssinavel>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

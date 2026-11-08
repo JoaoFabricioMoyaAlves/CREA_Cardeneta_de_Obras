@@ -13,6 +13,7 @@ export type CriarObraPayload = {
   proprietarioId: string;
   localObra: string;
   cidade: string;
+  estado: string;
   numeroRt: string;
   areaConstruirM2: number;
   areaAmpliarM2: number;
@@ -32,8 +33,4 @@ export type CriarObraPayload = {
 
 export function criarObra(payload: CriarObraPayload) {
   return api.post<ObraResponse>("/api/obras", payload);
-}
-
-export function assinarObra(id: number) {
-  return api.post<ObraResponse>(`/api/obras/${id}/assinar`);
 }

@@ -1,17 +1,19 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { AssinarDocumentoDialog } from "@/features/documentos/AssinarDocumentoDialog";
+import type { TipoDocumentoApi } from "@/lib/api/documentos";
 import { formatarDataHora } from "@/lib/format";
-import { BadgeCheck, Clock, Loader2, PenLine, ShieldCheck } from "lucide-react";
-import { SignatureCanvas } from "./SignatureCanvas";
+import { BadgeCheck, Clock, FileText, PenLine, ShieldCheck } from "lucide-react";
 
 export type AssinaturaSlot = {
-  papel: "Engenheiro" | "Proprietario";
+  papel: "Engenheiro" | "Proprietario" | "Administrador";
   nome: string;
   assinadoEm: string | null;
   hash: string | null;
-  // true só quando: é o usuário logado, é o papel dele nesta obra, e ele
-  // ainda não assinou — nunca é possível assinar pelo outro lado.
+  // true só quando é o usuário logado, no papel dele neste documento, e ele
+  // ainda não assinou. O servidor confere a mesma regra ao assinar.
   podeAssinar: boolean;
   // Carimbo de tempo RFC 3161 de uma autoridade externa — reforço opcional
   // de não-repúdio além do timestamp do próprio servidor.
@@ -20,8 +22,9 @@ export type AssinaturaSlot = {
 };
 
 const LABEL_PAPEL: Record<AssinaturaSlot["papel"], string> = {
-  Engenheiro: "Engenheiro",
+  Engenheiro: "Responsável técnico",
   Proprietario: "Proprietário",
+  Administrador: "Administrador (CREA)",
 };
 
 function AssinaturaStatusCard({
@@ -32,12 +35,9 @@ function AssinaturaStatusCard({
   podeAssinar,
   carimboTempoVerificado,
   carimboTempoAutoridade,
-  assinando,
   onAssinar,
-}: AssinaturaSlot & { assinando: boolean; onAssinar: () => Promise<void> }) {
-  const [open, setOpen] = useState(false);
+}: AssinaturaSlot & { onAssinar: () => void }) {
   const assinado = Boolean(assinadoEm);
-  const label = LABEL_PAPEL[papel];
 
   return (
     <Card
@@ -49,7 +49,7 @@ function AssinaturaStatusCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-primary">{label}</p>
+          <p className="text-sm font-semibold text-primary">{LABEL_PAPEL[papel]}</p>
           <p className="text-sm text-foreground">{nome}</p>
         </div>
         {assinado ? (
@@ -70,7 +70,10 @@ function AssinaturaStatusCard({
             </p>
           )}
           {carimboTempoVerificado && (
-            <p className="flex items-center gap-1 text-xs text-primary" title={`Carimbo de tempo RFC 3161 — ${carimboTempoAutoridade}`}>
+            <p
+              className="flex items-center gap-1 text-xs text-primary"
+              title={`Carimbo de tempo RFC 3161 — ${carimboTempoAutoridade}`}
+            >
               <ShieldCheck className="size-3.5" />
               Carimbo de tempo verificado ({carimboTempoAutoridade})
             </p>
@@ -82,33 +85,13 @@ function AssinaturaStatusCard({
             {podeAssinar ? "Aguardando sua assinatura" : "Aguardando assinatura"}
           </p>
           {podeAssinar && (
-            <Button
-              variant="assinar"
-              className="min-h-11 w-full"
-              disabled={assinando}
-              onClick={() => setOpen(true)}
-            >
-              {assinando ? (
-                <Loader2 className="mr-2 size-4 animate-spin" />
-              ) : (
-                <PenLine className="mr-2 size-4" />
-              )}
-              {assinando ? "Assinando…" : "Assinar"}
+            <Button variant="assinar" className="min-h-11 w-full" onClick={onAssinar}>
+              <PenLine className="mr-2 size-4" />
+              Ler e assinar
             </Button>
           )}
         </>
       )}
-
-      <SignatureCanvas
-        open={open}
-        onOpenChange={setOpen}
-        papel={label}
-        nome={nome}
-        onConfirmar={async () => {
-          await onAssinar();
-          setOpen(false);
-        }}
-      />
     </Card>
   );
 }
@@ -116,27 +99,40 @@ function AssinaturaStatusCard({
 export function BlocoAssinaturas({
   slots,
   titulo = "Assinaturas necessárias",
-  assinandoPapel,
-  onAssinar,
+  tipo,
+  referenciaId,
+  onAssinado,
 }: {
   slots: AssinaturaSlot[];
   titulo?: string;
-  assinandoPapel: string | null;
-  onAssinar: (papel: AssinaturaSlot["papel"]) => Promise<void>;
+  tipo: TipoDocumentoApi;
+  referenciaId: number;
+  onAssinado: () => void;
 }) {
+  const [assinando, setAssinando] = useState(false);
+
   return (
     <section className="space-y-3">
-      <h3 className="text-base font-semibold text-primary">{titulo}</h3>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-base font-semibold text-primary">{titulo}</h3>
+        <Button asChild variant="outline" size="sm">
+          <Link to="/documentos/$tipo/$id" params={{ tipo, id: String(referenciaId) }}>
+            <FileText className="mr-1.5 size-4" /> Ver / imprimir documento
+          </Link>
+        </Button>
+      </div>
       <div className="grid gap-3 md:grid-cols-2">
         {slots.map((slot) => (
-          <AssinaturaStatusCard
-            key={slot.papel}
-            {...slot}
-            assinando={assinandoPapel === slot.papel}
-            onAssinar={() => onAssinar(slot.papel)}
-          />
+          <AssinaturaStatusCard key={slot.papel} {...slot} onAssinar={() => setAssinando(true)} />
         ))}
       </div>
+      <AssinarDocumentoDialog
+        open={assinando}
+        onOpenChange={setAssinando}
+        tipo={tipo}
+        referenciaId={referenciaId}
+        onAssinado={onAssinado}
+      />
     </section>
   );
 }

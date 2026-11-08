@@ -1,13 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatarData, formatarMoeda } from "@/lib/format";
 import { nomeComAbreviacao } from "@/lib/constants";
-import { assinarObra } from "@/lib/api/obras";
-import { assinarTermo } from "@/lib/api/termos";
-import { ApiError } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth-context";
 import type { AssinaturaSlot } from "@/features/assinatura/components/AssinaturaStatusCard";
 import type { ObraResponse, RegistroResponse, TermoResponse } from "@/lib/api/types";
@@ -15,8 +12,6 @@ import { StatusBadge } from "./ObraCard";
 import { RegistroCard } from "@/features/registros/components/RegistroCard";
 import { BlocoAssinaturas } from "@/features/assinatura/components/AssinaturaStatusCard";
 import { CheckCircle2, FileText, MapPin, Plus, ScrollText } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
 
 export function ObraDetalhe({
   obra,
@@ -29,8 +24,6 @@ export function ObraDetalhe({
 }) {
   const { usuario, perfil } = useAuth();
   const queryClient = useQueryClient();
-  const [assinandoPapelObra, setAssinandoPapelObra] = useState<string | null>(null);
-  const [assinandoPapelTermo, setAssinandoPapelTermo] = useState<string | null>(null);
 
   const ehEngenheiroResponsavel = perfil === "engenheiro" && usuario?.id === obra.profissionalId;
 
@@ -45,50 +38,13 @@ export function ObraDetalhe({
     queryClient.invalidateQueries({ queryKey: ["obra", obra.id] });
     queryClient.invalidateQueries({ queryKey: ["termo", obra.id] });
     queryClient.invalidateQueries({ queryKey: ["obras"] });
-  }
-
-  const assinarObraMutation = useMutation({
-    mutationFn: () => assinarObra(obra.id),
-    onSuccess: () => {
-      toast.success("Assinatura registrada.");
-      invalidar();
-    },
-    onError: (err) => {
-      toast.error(err instanceof ApiError ? err.message : "Não foi possível registrar a assinatura.");
-    },
-  });
-
-  const assinarTermoMutation = useMutation({
-    mutationFn: () => assinarTermo(termo!.id),
-    onSuccess: () => {
-      toast.success("Assinatura do termo registrada.");
-      invalidar();
-    },
-    onError: (err) => {
-      toast.error(err instanceof ApiError ? err.message : "Não foi possível registrar a assinatura.");
-    },
-  });
-
-  async function assinarAberturaObra(papel: AssinaturaSlot["papel"]) {
-    setAssinandoPapelObra(papel);
-    try {
-      await assinarObraMutation.mutateAsync();
-    } finally {
-      setAssinandoPapelObra(null);
-    }
-  }
-
-  async function assinarTermoConclusao(papel: AssinaturaSlot["papel"]) {
-    setAssinandoPapelTermo(papel);
-    try {
-      await assinarTermoMutation.mutateAsync();
-    } finally {
-      setAssinandoPapelTermo(null);
-    }
+    queryClient.invalidateQueries({ queryKey: ["documento"] });
   }
 
   const assinaturaEngenheiro = obra.assinaturas.find((a) => a.papel === "Engenheiro");
   const assinaturaProprietario = obra.assinaturas.find((a) => a.papel === "Proprietario");
+
+  const assinaturaAdministrador = obra.assinaturas.find((a) => a.papel === "Administrador");
 
   const slotsObra: AssinaturaSlot[] = [
     {
@@ -104,19 +60,39 @@ export function ObraDetalhe({
         perfil === "engenheiro" &&
         usuario?.id === obra.profissionalId,
     },
-    {
-      papel: "Proprietario",
-      nome: nomeProprietario,
-      assinadoEm: assinaturaProprietario?.data ?? null,
-      hash: assinaturaProprietario?.hash ?? null,
-      carimboTempoVerificado: assinaturaProprietario?.carimboTempoVerificado,
-      carimboTempoAutoridade: assinaturaProprietario?.carimboTempoAutoridade,
-      podeAssinar:
-        obra.status === "PendenteAssinatura" &&
-        !assinaturaProprietario &&
-        perfil === "proprietario" &&
-        usuario?.id === obra.proprietarioId,
-    },
+    // Abertura concluída pela regra antiga não aguarda o CREA.
+    ...(obra.status === "PendenteAssinatura" || assinaturaAdministrador
+      ? [
+          {
+            papel: "Administrador" as const,
+            nome: assinaturaAdministrador?.nomeUsuario ?? "Funcionário do CREA de Adamantina",
+            assinadoEm: assinaturaAdministrador?.data ?? null,
+            hash: assinaturaAdministrador?.hash ?? null,
+            carimboTempoVerificado: assinaturaAdministrador?.carimboTempoVerificado,
+            carimboTempoAutoridade: assinaturaAdministrador?.carimboTempoAutoridade,
+            // O responsável técnico assina primeiro; o servidor confere a mesma ordem.
+            podeAssinar:
+              obra.status === "PendenteAssinatura" &&
+              Boolean(assinaturaEngenheiro) &&
+              !assinaturaAdministrador &&
+              perfil === "administrador",
+          },
+        ]
+      : []),
+    // Aberturas antigas foram assinadas pelo proprietário: a assinatura continua visível.
+    ...(assinaturaProprietario
+      ? [
+          {
+            papel: "Proprietario" as const,
+            nome: nomeProprietario,
+            assinadoEm: assinaturaProprietario.data,
+            hash: assinaturaProprietario.hash,
+            carimboTempoVerificado: assinaturaProprietario.carimboTempoVerificado,
+            carimboTempoAutoridade: assinaturaProprietario.carimboTempoAutoridade,
+            podeAssinar: false,
+          },
+        ]
+      : []),
   ];
 
   const termoAssEngenheiro = termo?.assinaturas.find((a) => a.papel === "Engenheiro");
@@ -171,7 +147,9 @@ export function ObraDetalhe({
                 <MapPin className="mt-1 size-5 shrink-0" />
                 {obra.localObra}
               </h1>
-              <p className="mt-1 pl-7 text-sm text-muted-foreground">{obra.cidade}</p>
+              <p className="mt-1 pl-7 text-sm text-muted-foreground">
+                {obra.cidade.includes("/") ? obra.cidade : `${obra.cidade} / ${obra.estado}`}
+              </p>
             </div>
             <div className="flex flex-col items-end gap-3">
               <StatusBadge status={obra.status} />
@@ -240,8 +218,9 @@ export function ObraDetalhe({
           <BlocoAssinaturas
             titulo="Assinaturas da caderneta"
             slots={slotsObra}
-            assinandoPapel={assinandoPapelObra}
-            onAssinar={assinarAberturaObra}
+            tipo="abertura-obra"
+            referenciaId={obra.id}
+            onAssinado={invalidar}
           />
         </CardContent>
       </Card>
@@ -262,8 +241,9 @@ export function ObraDetalhe({
             <BlocoAssinaturas
               titulo="Assinaturas do termo"
               slots={slotsTermo}
-              assinandoPapel={assinandoPapelTermo}
-              onAssinar={assinarTermoConclusao}
+              tipo="termo-conclusao"
+              referenciaId={termo.id}
+              onAssinado={invalidar}
             />
           </CardContent>
         </Card>

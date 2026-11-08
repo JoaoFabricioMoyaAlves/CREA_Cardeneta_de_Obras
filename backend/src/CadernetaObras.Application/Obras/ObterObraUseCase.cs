@@ -35,6 +35,10 @@ public class ObterObraUseCase
         var proprietario = await _usuarios.ObterPorIdAsync(obra.IdProprietario, ct)
             ?? throw new NotFoundException("Proprietário da obra não encontrado.");
 
-        return ObraMapper.ToResponse(obra, profissional, proprietario);
+        var administrador = obra.IdAdministrador is { } idAdministrador
+            ? await _usuarios.ObterPorIdAsync(idAdministrador, ct)
+            : null;
+
+        return ObraMapper.ToResponse(obra, profissional, proprietario, administrador);
     }
 }

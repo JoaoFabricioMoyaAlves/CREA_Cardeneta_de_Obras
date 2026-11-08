@@ -22,4 +22,10 @@ public interface INotificacaoService
 
     // Enviado ao proprietário quando o engenheiro já assinou e só falta ele.
     void EngenheiroAssinou(Usuario proprietario, Usuario engenheiro, Obra obra, DocumentoParaAssinar documento, string caminho);
+
+    // Enviado ao proprietário quando a obra é registrada: ele acompanha, mas não assina a abertura.
+    void AberturaRegistrada(Usuario proprietario, Usuario profissional, Obra obra, string caminho);
+
+    // Enviado aos Administradores quando o responsável técnico assina a abertura.
+    void AberturaAguardandoAdministrador(Usuario administrador, Usuario profissional, Obra obra, string caminho);
 }

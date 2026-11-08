@@ -70,14 +70,13 @@ Fluxo de dependências (Clean Architecture): `Api` → `Infrastructure` → `App
 | GET/POST | `/api/usuarios` | Administrador | Listar/cadastrar usuários (Admin exige `SenhaSecretaDev`) |
 | GET/POST | `/api/obras` | Todos / Administrador | Listar (filtrado por perfil) / criar obra |
 | GET | `/api/obras/{id}` | Envolvidos na obra | Detalhe |
-| POST | `/api/obras/{id}/assinar` | Engenheiro/Proprietário da obra | Assina a abertura (gera hash+IP+timestamp) |
+| GET | `/api/documentos/{tipo}/{id}` | Administrador, profissional e proprietário da obra | Dados do documento (`abertura-obra`, `relato-visita`, `termo-conclusao`) |
+| POST | `/api/documentos/{tipo}/{id}/assinar` | Conforme o documento | Assina com CPF, senha e o hash do documento exibido |
 | GET/POST | `/api/obras/{obraId}/registros` | Envolvidos / Engenheiro | Listar / criar registro de visita |
 | POST | `/api/registros/{id}/imagens` | Engenheiro | Upload de foto (multipart/form-data, campo `arquivo`) |
 | GET | `/api/registros/{registroId}/imagens/{imagemId}/url` | Envolvidos na obra | URL presignada (15min) do MinIO para exibir a foto |
-| POST | `/api/registros/{id}/assinar` | Engenheiro/Proprietário da obra | Assina o registro |
 | GET | `/api/obras/{obraId}/termo-conclusao` | Envolvidos na obra | Consulta o termo de conclusão (200 com o termo, ou 204 se ainda não existe) |
 | POST | `/api/termos-conclusao` | Engenheiro | Emite termo de conclusão |
-| POST | `/api/termos-conclusao/{id}/assinar` | Engenheiro/Proprietário | Assina o termo (finaliza a obra quando ambos assinam) |
 | GET | `/api/auditoria?limite=200` | Administrador | Log de auditoria (RF09) — mais recentes primeiro |
 | GET | `/health` | Público | Health check |
 

@@ -19,6 +19,7 @@ public class Obra
 
     public string LocalObra { get; set; } = string.Empty;
     public string Cidade { get; set; } = string.Empty;
+    public string Estado { get; set; } = "SP";
     public string NumeroRt { get; set; } = string.Empty;
 
     public decimal AreaConstruirM2 { get; set; }

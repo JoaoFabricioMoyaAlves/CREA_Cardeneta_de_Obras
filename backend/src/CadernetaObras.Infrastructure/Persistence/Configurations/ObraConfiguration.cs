@@ -13,6 +13,7 @@ public class ObraConfiguration : IEntityTypeConfiguration<Obra>
         b.Property(o => o.NumeroCaderneta).HasMaxLength(50).IsRequired();
         b.Property(o => o.LocalObra).HasMaxLength(255).IsRequired();
         b.Property(o => o.Cidade).HasMaxLength(150).IsRequired();
+        b.Property(o => o.Estado).HasMaxLength(2).IsRequired().HasDefaultValue("SP");
         b.Property(o => o.NumeroRt).HasMaxLength(50).IsRequired();
         b.Property(o => o.TipoEdificacao).HasMaxLength(100).IsRequired();
         b.Property(o => o.TipoEdificacaoOutros).HasMaxLength(255);
@@ -53,6 +54,7 @@ public class AssinaturaObraConfiguration : IEntityTypeConfiguration<AssinaturaOb
         b.ToTable("assinaturas_obra");
         b.HasKey(a => a.Id);
         b.Property(a => a.CodHash).HasMaxLength(255).IsRequired();
+        b.Property(a => a.HashAssinatura).HasMaxLength(64);
         b.Property(a => a.Ip).HasMaxLength(45).IsRequired();
         b.Property(a => a.UserAgent).HasMaxLength(500).IsRequired();
         b.Property(a => a.Papel).HasConversion<string>().HasMaxLength(20);

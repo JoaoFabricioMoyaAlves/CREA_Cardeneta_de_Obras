@@ -1,4 +1,4 @@
-using CadernetaObras.Application.Assinaturas;
+using CadernetaObras.Application.Documentos;
 using CadernetaObras.Application.Auditoria;
 using CadernetaObras.Application.Auth;
 using CadernetaObras.Application.Notificacoes;
@@ -37,9 +37,12 @@ public static class DependencyInjection
         services.AddScoped<CriarTermoUseCase>();
         services.AddScoped<ObterTermoPorObraUseCase>();
 
-        services.AddScoped<AssinarObraUseCase>();
-        services.AddScoped<AssinarRegistroUseCase>();
-        services.AddScoped<AssinarTermoUseCase>();
+        services.AddScoped<IDocumentoHandler, AberturaObraHandler>();
+        services.AddScoped<IDocumentoHandler, RelatoVisitaHandler>();
+        services.AddScoped<IDocumentoHandler, TermoConclusaoHandler>();
+        services.AddScoped<ObterDocumentoUseCase>();
+        services.AddScoped<AssinarDocumentoUseCase>();
+        services.AddSingleton<ILimiteTentativasAssinatura, LimiteTentativasAssinatura>();
 
         return services;
     }

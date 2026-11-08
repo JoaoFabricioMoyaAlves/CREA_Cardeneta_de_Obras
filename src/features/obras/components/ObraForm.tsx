@@ -8,7 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { ATIVIDADES_TECNICAS, TIPOS_EDIFICACAO } from "@/lib/constants";
+import {
+  ATIVIDADES_TECNICAS,
+  CIDADE_PADRAO,
+  ESTADO_PADRAO,
+  TIPOS_EDIFICACAO,
+} from "@/lib/constants";
 import { listarUsuarios } from "@/lib/api/usuarios";
 import { criarObra } from "@/lib/api/obras";
 import { ApiError } from "@/lib/api/client";
@@ -21,7 +26,8 @@ export function ObraForm() {
   const [proprietario, setProprietario] = useState("");
   const [tipo, setTipo] = useState("");
   const [local, setLocal] = useState("");
-  const [cidade, setCidade] = useState("");
+  const [cidade, setCidade] = useState<string>(CIDADE_PADRAO);
+  const [estado, setEstado] = useState<string>(ESTADO_PADRAO);
   const [rt, setRt] = useState("");
   const [valorObra, setValorObra] = useState("");
   const [empresa, setEmpresa] = useState("");
@@ -57,8 +63,8 @@ export function ObraForm() {
 
   function salvar(e: React.FormEvent) {
     e.preventDefault();
-    if (!proprietario || !local.trim() || !cidade.trim() || !rt.trim() || !tipo || !valorObra.trim() || !dataRecibo) {
-      setErro("Preencha proprietário, local, cidade, número RT, tipo de edificação, valor da obra e data do recibo.");
+    if (!proprietario || !local.trim() || !cidade.trim() || estado.trim().length !== 2 || !rt.trim() || !tipo || !valorObra.trim() || !dataRecibo) {
+      setErro("Preencha proprietário, local, cidade, estado (2 letras), número RT, tipo de edificação, valor da obra e data do recibo.");
       return;
     }
     setErro(null);
@@ -66,6 +72,7 @@ export function ObraForm() {
       proprietarioId: proprietario,
       localObra: local.trim(),
       cidade: cidade.trim(),
+      estado: estado.trim().toUpperCase(),
       numeroRt: rt.trim(),
       areaConstruirM2: parseFloat(areas.construir) || 0,
       areaAmpliarM2: parseFloat(areas.ampliar) || 0,
@@ -126,9 +133,20 @@ export function ObraForm() {
               <Input
                 id="cidade"
                 className="min-h-11"
-                placeholder="Cidade / UF"
+                placeholder="Cidade"
                 value={cidade}
                 onChange={(e) => setCidade(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="estado">Estado *</Label>
+              <Input
+                id="estado"
+                className="min-h-11"
+                placeholder="UF"
+                maxLength={2}
+                value={estado}
+                onChange={(e) => setEstado(e.target.value.toUpperCase())}
               />
             </div>
             <div className="space-y-2">

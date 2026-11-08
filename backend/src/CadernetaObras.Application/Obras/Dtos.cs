@@ -18,7 +18,8 @@ public record CriarObraRequest(
     decimal ValorObra,
     DateOnly DataReciboAbertura,
     string? NomeEmpresa,
-    string? CnpjEmpresa
+    string? CnpjEmpresa,
+    string? Estado = null
 );
 
 public record AssinaturaResumoDto(
@@ -37,6 +38,7 @@ public record ObraResponse(
     string NumeroCaderneta,
     string LocalObra,
     string Cidade,
+    string Estado,
     string NumeroRt,
     string TipoEdificacao,
     decimal AreaConstruirM2,

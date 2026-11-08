@@ -29,6 +29,10 @@ export const TIPOS_USUARIO: { value: TipoUsuario; label: string }[] = [
 export const TITULO_ARQUITETO = "Arquiteto e Urbanista";
 export const TITULO_TECNICO = "Técnico";
 
+// Valores iniciais dos campos de localização; o usuário pode alterar.
+export const CIDADE_PADRAO = "Adamantina";
+export const ESTADO_PADRAO = "SP";
+
 export const ESPECIALIDADES_ENGENHARIA = [
   "Engenheiro Civil",
   "Engenheiro Eletricista",

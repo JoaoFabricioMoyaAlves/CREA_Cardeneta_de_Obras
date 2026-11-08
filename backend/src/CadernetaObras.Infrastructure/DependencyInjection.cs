@@ -44,6 +44,7 @@ public static class DependencyInjection
         services.AddSingleton<IEmailService>(sp => sp.GetRequiredService<FilaEmailService>());
         services.AddHostedService<EmailDispatcher>();
         services.AddScoped<ITokenSenhaRepository, TokenSenhaRepository>();
+        services.AddScoped<IDocumentoAssinavelRepository, DocumentoAssinavelRepository>();
 
         return services;
     }

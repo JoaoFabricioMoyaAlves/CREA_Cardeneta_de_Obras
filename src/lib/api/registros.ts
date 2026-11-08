@@ -48,10 +48,6 @@ export function criarRegistro(payload: CriarRegistroPayload) {
   });
 }
 
-export function assinarRegistro(id: number) {
-  return api.post<RegistroResponse>(`/api/registros/${id}/assinar`);
-}
-
 export function adicionarImagem(registroId: number, arquivo: File) {
   const formData = new FormData();
   formData.append("arquivo", arquivo);

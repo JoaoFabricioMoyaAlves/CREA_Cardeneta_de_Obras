@@ -1,24 +1,33 @@
 using CadernetaObras.Domain.Entities;
+using CadernetaObras.Domain.Enums;
 
 namespace CadernetaObras.Application.Obras;
 
 internal static class ObraMapper
 {
-    public static ObraResponse ToResponse(Obra obra, Usuario profissional, Usuario proprietario)
+    public static List<string> ListarAtividades(Obra obra)
     {
         var atividades = new List<string>();
         if (obra.AtivTecnicaDirecao) atividades.Add("Direção");
         if (obra.AtivTecnicaExecucao) atividades.Add("Execução");
         if (obra.AtivTecnicaFiscalizacao) atividades.Add("Fiscalização");
         if (obra.AtivTecnicaProjeto) atividades.Add("Projeto");
+        return atividades;
+    }
+
+    public static ObraResponse ToResponse(Obra obra, Usuario profissional, Usuario proprietario, Usuario? administrador = null)
+    {
+        var atividades = ListarAtividades(obra);
 
         var assinaturas = obra.Assinaturas
             .Select(a => new AssinaturaResumoDto(
                 a.Papel.ToString(),
                 a.UsuarioId,
-                a.UsuarioId == profissional.Id ? profissional.Nome : proprietario.Nome,
+                a.Papel == PapelAssinatura.Administrador
+                    ? administrador?.Nome ?? "Administrador do CREA"
+                    : a.UsuarioId == profissional.Id ? profissional.Nome : proprietario.Nome,
                 a.Data,
-                a.CodHash,
+                a.HashAssinatura ?? a.CodHash,
                 a.TsaToken is not null,
                 a.TsaAutoridade,
                 a.TsaDataHora))
@@ -29,6 +38,7 @@ internal static class ObraMapper
             obra.NumeroCaderneta,
             obra.LocalObra,
             obra.Cidade,
+            obra.Estado,
             obra.NumeroRt,
             obra.TipoEdificacao,
             obra.AreaConstruirM2,

@@ -50,6 +50,7 @@ public class CriarObraUseCase
             IdProprietario = proprietario.Id,
             LocalObra = request.LocalObra.Trim(),
             Cidade = request.Cidade.Trim(),
+            Estado = string.IsNullOrWhiteSpace(request.Estado) ? "SP" : request.Estado.Trim().ToUpperInvariant(),
             NumeroRt = request.NumeroRt.Trim(),
             AreaConstruirM2 = request.AreaConstruirM2,
             AreaAmpliarM2 = request.AreaAmpliarM2,
@@ -80,7 +81,7 @@ public class CriarObraUseCase
         _auditLogger.Registrar("ObraCriada", _currentUser.UsuarioId, "Obra", obra.Id.ToString(), obra.NumeroCaderneta);
         await _unitOfWork.SalvarAsync(ct);
 
-        _notificacoes.DocumentoCriado(proprietario, profissional, obra, DocumentoParaAssinar.AberturaObra, $"/obras/{obra.Id}");
+        _notificacoes.AberturaRegistrada(proprietario, profissional, obra, $"/obras/{obra.Id}");
 
         return ObraMapper.ToResponse(obra, profissional, proprietario);
     }

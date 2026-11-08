@@ -1,4 +1,3 @@
-using CadernetaObras.Application.Assinaturas;
 using CadernetaObras.Application.Registros;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,19 +13,17 @@ public class RegistrosController : ControllerBase
     private readonly ObterRegistroUseCase _obterRegistro;
     private readonly AdicionarImagemUseCase _adicionarImagem;
     private readonly ObterUrlImagemUseCase _obterUrlImagem;
-    private readonly AssinarRegistroUseCase _assinarRegistro;
 
     public RegistrosController(
         CriarRegistroUseCase criarRegistro, ListarRegistrosUseCase listarRegistros,
         ObterRegistroUseCase obterRegistro, AdicionarImagemUseCase adicionarImagem,
-        ObterUrlImagemUseCase obterUrlImagem, AssinarRegistroUseCase assinarRegistro)
+        ObterUrlImagemUseCase obterUrlImagem)
     {
         _criarRegistro = criarRegistro;
         _listarRegistros = listarRegistros;
         _obterRegistro = obterRegistro;
         _adicionarImagem = adicionarImagem;
         _obterUrlImagem = obterUrlImagem;
-        _assinarRegistro = assinarRegistro;
     }
 
     [HttpGet("api/obras/{obraId:int}/registros")]
@@ -54,8 +51,4 @@ public class RegistrosController : ControllerBase
     [HttpGet("api/registros/{registroId:int}/imagens/{imagemId:int}/url")]
     public async Task<ActionResult<object>> ObterUrlImagem(int registroId, int imagemId, CancellationToken ct) =>
         Ok(new { url = await _obterUrlImagem.ExecutarAsync(registroId, imagemId, ct) });
-
-    [HttpPost("api/registros/{id:int}/assinar")]
-    public async Task<ActionResult<RegistroResponse>> Assinar(int id, CancellationToken ct) =>
-        Ok(await _assinarRegistro.ExecutarAsync(id, ct));
 }

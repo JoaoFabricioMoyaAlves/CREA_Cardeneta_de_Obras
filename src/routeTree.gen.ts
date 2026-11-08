@@ -18,6 +18,7 @@ import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as ObrasIdRouteImport } from './routes/obras.$id'
 import { Route as ObrasNovaRouteImport } from './routes/obras.nova'
 import { Route as UsuariosNovoRouteImport } from './routes/usuarios_.novo'
+import { Route as DocumentosTipoIdRouteImport } from './routes/documentos.$tipo.$id'
 import { Route as ObrasIdIndexRouteImport } from './routes/obras.$id.index'
 import { Route as ObrasIdFinalizarRouteImport } from './routes/obras.$id.finalizar'
 import { Route as ObrasIdRegistrosRegistroIdRouteImport } from './routes/obras.$id.registros.$registroId'
@@ -68,6 +69,11 @@ const UsuariosNovoRoute = UsuariosNovoRouteImport.update({
   path: '/usuarios/novo',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocumentosTipoIdRoute = DocumentosTipoIdRouteImport.update({
+  id: '/documentos/$tipo/$id',
+  path: '/documentos/$tipo/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ObrasIdIndexRoute = ObrasIdIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/obras/$id': typeof ObrasIdRouteWithChildren
   '/obras/nova': typeof ObrasNovaRoute
   '/usuarios/novo': typeof UsuariosNovoRoute
+  '/documentos/$tipo/$id': typeof DocumentosTipoIdRoute
   '/obras/$id/finalizar': typeof ObrasIdFinalizarRoute
   '/obras/$id/': typeof ObrasIdIndexRoute
   '/obras/$id/registros/$registroId': typeof ObrasIdRegistrosRegistroIdRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/usuarios': typeof UsuariosRoute
   '/obras/nova': typeof ObrasNovaRoute
   '/usuarios/novo': typeof UsuariosNovoRoute
+  '/documentos/$tipo/$id': typeof DocumentosTipoIdRoute
   '/obras/$id/finalizar': typeof ObrasIdFinalizarRoute
   '/obras/$id': typeof ObrasIdIndexRoute
   '/obras/$id/registros/$registroId': typeof ObrasIdRegistrosRegistroIdRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/obras/$id': typeof ObrasIdRouteWithChildren
   '/obras/nova': typeof ObrasNovaRoute
   '/usuarios_/novo': typeof UsuariosNovoRoute
+  '/documentos/$tipo/$id': typeof DocumentosTipoIdRoute
   '/obras/$id/finalizar': typeof ObrasIdFinalizarRoute
   '/obras/$id/': typeof ObrasIdIndexRoute
   '/obras/$id/registros/$registroId': typeof ObrasIdRegistrosRegistroIdRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/obras/$id'
     | '/obras/nova'
     | '/usuarios/novo'
+    | '/documentos/$tipo/$id'
     | '/obras/$id/finalizar'
     | '/obras/$id/'
     | '/obras/$id/registros/$registroId'
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/obras/nova'
     | '/usuarios/novo'
+    | '/documentos/$tipo/$id'
     | '/obras/$id/finalizar'
     | '/obras/$id'
     | '/obras/$id/registros/$registroId'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/obras/$id'
     | '/obras/nova'
     | '/usuarios_/novo'
+    | '/documentos/$tipo/$id'
     | '/obras/$id/finalizar'
     | '/obras/$id/'
     | '/obras/$id/registros/$registroId'
@@ -192,6 +204,7 @@ export interface RootRouteChildren {
   ObrasIdRoute: typeof ObrasIdRouteWithChildren
   ObrasNovaRoute: typeof ObrasNovaRoute
   UsuariosNovoRoute: typeof UsuariosNovoRoute
+  DocumentosTipoIdRoute: typeof DocumentosTipoIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -259,6 +272,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsuariosNovoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/documentos/$tipo/$id': {
+      id: '/documentos/$tipo/$id'
+      path: '/documentos/$tipo/$id'
+      fullPath: '/documentos/$tipo/$id'
+      preLoaderRoute: typeof DocumentosTipoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/obras/$id/': {
       id: '/obras/$id/'
       path: '/'
@@ -317,6 +337,7 @@ const rootRouteChildren: RootRouteChildren = {
   ObrasIdRoute: ObrasIdRouteWithChildren,
   ObrasNovaRoute: ObrasNovaRoute,
   UsuariosNovoRoute: UsuariosNovoRoute,
+  DocumentosTipoIdRoute: DocumentosTipoIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

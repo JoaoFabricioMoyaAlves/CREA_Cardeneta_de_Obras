@@ -42,7 +42,7 @@ export type UsuarioCriadoResponse = {
 };
 
 export type AssinaturaResumo = {
-  papel: "Engenheiro" | "Proprietario";
+  papel: "Engenheiro" | "Proprietario" | "Administrador";
   usuarioId: string;
   nomeUsuario: string;
   data: string | null;
@@ -72,6 +72,7 @@ export type ObraResponse = {
   numeroCaderneta: string;
   localObra: string;
   cidade: string;
+  estado: string;
   numeroRt: string;
   tipoEdificacao: string;
   areaConstruirM2: number;

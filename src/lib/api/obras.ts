@@ -13,6 +13,7 @@ export type CriarObraPayload = {
   proprietarioId: string;
   localObra: string;
   cidade: string;
+  estado: string;
   numeroRt: string;
   areaConstruirM2: number;
   areaAmpliarM2: number;

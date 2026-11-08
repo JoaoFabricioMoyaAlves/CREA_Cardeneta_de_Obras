@@ -80,15 +80,35 @@ export function FolhaA4({
   );
 }
 
+// Larguras definidas à mão para as logos terem peso visual parecido na folha;
+// a altura acompanha a proporção de cada arquivo.
+const LOGOS = [
+  { arquivo: "crea-sp.png", nome: "CREA-SP", largura: "38mm" },
+  { arquivo: "crt-sp.png", nome: "CRT-SP", largura: "36mm" },
+  { arquivo: "cau-sp.png", nome: "CAU/SP", largura: "33mm" },
+  {
+    arquivo: "prefeitura-adamantina.png",
+    nome: "Prefeitura Municipal de Adamantina",
+    largura: "32mm",
+  },
+];
+
 export function Cabecalho({ numero }: { numero: string }) {
   return (
-    <div className="doc-logos">
-      <span className="doc-logo-texto">CREA-SP</span>
-      <span className="doc-logo-texto">CRT-SP</span>
-      <span className="doc-logo-texto">CAU/SP</span>
-      <span className="doc-logo-reservado">Prefeitura de Adamantina</span>
-      <span className="doc-numero">{numero}</span>
-    </div>
+    <header className="doc-cabecalho">
+      <div className="doc-logos">
+        {LOGOS.map((logo) => (
+          <img
+            key={logo.arquivo}
+            src={`/logos/${logo.arquivo}`}
+            alt={logo.nome}
+            className="doc-logo"
+            style={{ width: logo.largura }}
+          />
+        ))}
+      </div>
+      <p className="doc-numero">{numero}</p>
+    </header>
   );
 }
 

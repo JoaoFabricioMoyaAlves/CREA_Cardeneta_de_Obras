@@ -49,40 +49,32 @@
   padding: 6mm;
 }
 
-.doc-logos {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 3mm;
-  padding-bottom: 4mm;
+.doc-cabecalho {
+  padding-bottom: 2mm;
   border-bottom: 0.3mm solid #111;
 }
 
-.doc-logo-texto {
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 11pt;
-  font-weight: 700;
-}
-
-.doc-logo-reservado {
+.doc-logos {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 34mm;
-  height: 14mm;
-  padding: 1mm;
-  border: 0.2mm dashed #6b7280;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 7.5pt;
-  text-align: center;
-  color: #4b5563;
+  justify-content: space-between;
+  gap: 3mm;
+}
+
+.doc-logo {
+  display: block;
+  flex: none;
+  height: auto;
+  max-height: 14mm;
+  object-fit: contain;
 }
 
 .doc-numero {
+  margin: 2mm 0 0;
   font-family: Arial, Helvetica, sans-serif;
   font-size: 12pt;
   font-weight: 700;
+  text-align: right;
   color: #b91c1c;
 }
 

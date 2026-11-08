@@ -19,3 +19,15 @@ public class AssinaturaDuplicadaException : DomainException
     public AssinaturaDuplicadaException()
         : base("Este usuário já assinou este documento.") { }
 }
+
+public class DocumentoAlteradoException : DomainException
+{
+    public DocumentoAlteradoException()
+        : base("O documento mudou desde que foi aberto. Leia a versão atual antes de assinar.") { }
+}
+
+public class ConflitoConcorrenciaException : DomainException
+{
+    public ConflitoConcorrenciaException()
+        : base("Outra assinatura foi registrada neste momento. Recarregue o documento e tente novamente.") { }
+}

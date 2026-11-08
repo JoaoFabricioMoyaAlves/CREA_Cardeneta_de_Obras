@@ -87,7 +87,6 @@ export function Cabecalho({ numero }: { numero: string }) {
       <span className="doc-logo-texto">CRT-SP</span>
       <span className="doc-logo-texto">CAU/SP</span>
       <span className="doc-logo-reservado">Prefeitura de Adamantina</span>
-      <span className="doc-logo-reservado">Entidade de Adamantina</span>
       <span className="doc-numero">{numero}</span>
     </div>
   );

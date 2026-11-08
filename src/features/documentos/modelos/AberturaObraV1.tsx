@@ -116,7 +116,7 @@ export function AberturaObraV1({ documento }: { documento: DocumentoResponse }) 
               ? [
                   {
                     papel: "Administrador" as const,
-                    rotulo: "Assinatura do CREA (Adamantina)",
+                    rotulo: "Assinatura do Administrador (CREA Adamantina)",
                     nome: "",
                   },
                 ]
